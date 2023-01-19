@@ -1,4 +1,4 @@
-# Pneumonia Detection
+# Chest X-Ray Classifier
 
 
 
@@ -15,14 +15,14 @@ Already a pro? Just edit this README.md and make it your own. Want to make it ea
 
 ```
 cd existing_repo
-git remote add origin https://gitlab2.informatik.uni-wuerzburg.de/amh12ry/pneumonia-detection.git
+git remote add origin https://gitlab2.informatik.uni-wuerzburg.de/amh12ry/chest-x-ray-classifier.git
 git branch -M main
 git push -uf origin main
 ```
 
 ## Integrate with your tools
 
-- [ ] [Set up project integrations](https://gitlab2.informatik.uni-wuerzburg.de/amh12ry/pneumonia-detection/-/settings/integrations)
+- [ ] [Set up project integrations](https://gitlab2.informatik.uni-wuerzburg.de/amh12ry/chest-x-ray-classifier/-/settings/integrations)
 
 ## Collaborate with your team
 
