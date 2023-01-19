@@ -48,13 +48,14 @@ class CheXpert(Dataset):
         # load data from csv
         self.df = pd.read_csv(csv_path)
 
-        assert all(col in upsampling_cols for col in train_cols), \
-            'Discrepancy between upsampling_cols and train_cols!'
         cheXpert_classes = self.df.columns[5:]
         assert all(col in cheXpert_classes for col in train_cols), \
             'One or more classes in train_cols are incorrect!'
-        assert all(col in cheXpert_classes for col in upsampling_cols), \
-            'One or more classes in upsampling_cols are incorrect!'
+        if use_upsampling:
+            assert all(col in cheXpert_classes for col in upsampling_cols), \
+                'One or more classes in upsampling_cols are incorrect!'
+            assert all(col in upsampling_cols for col in train_cols), \
+                'Discrepancy between upsampling_cols and train_cols!'
 
         # filter dataframe
         # only use frontal scans
@@ -185,3 +186,7 @@ if __name__ == '__main__':
                        image_size=320, mode='valid', train_cols=["Pneumonia"])
     trainLoader = torch.utils.data.DataLoader(trainSet, batch_size=32, num_workers=2, drop_last=True, shuffle=True)
     testLoader = torch.utils.data.DataLoader(testSet, batch_size=32, num_workers=2, drop_last=False, shuffle=False)
+
+    print(trainSet._labels_list)
+
+
