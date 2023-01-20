@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import tqdm
 from torch.utils.data import Dataset
 import torchvision.transforms as tfs
 import cv2
@@ -23,6 +24,7 @@ class CheXpert(Dataset):
                  shuffle: bool = True,
                  seed: int = 42069,
                  verbose: bool = True,
+                 assert_images: bool = False,
                  upsampling_cols: list[str] = ['Cardiomegaly', 'Consolidation'],
                  train_cols: list[str] = ['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion'],
                  mode: str = 'train'):
@@ -106,8 +108,12 @@ class CheXpert(Dataset):
             class_value_counts_dict = self.df[select_col].value_counts().to_dict()
             self.value_counts_dict[class_key] = class_value_counts_dict
 
-        self._images_list = [os.path.join(image_root_path, path) for path in self.df['Path'].tolist()]
         self._labels_list = self.df[train_cols].values.tolist()
+        self._images_list = [os.path.join(image_root_path, path) for path in self.df['Path'].tolist()]
+        if assert_images:
+            print("Checking if all images exist...")
+            assert self.assert_images_exist(image_root_path), "One or more image paths are invalid!"
+            print("...done")
 
         if verbose:
             print('-' * 30)
@@ -140,6 +146,14 @@ class CheXpert(Dataset):
     def data_size(self):
         return self._num_images
 
+    def assert_images_exist(self, image_root_path) -> bool:
+        for image_path in tqdm.tqdm(self._images_list):
+            if not os.path.isfile(os.path.join(image_root_path, image_path)):
+                print("%s does not exist!" % os.path.join(image_root_path, image_path))
+                return False
+
+        return True
+
     @staticmethod
     def label_smoothing_regularization(value, a=0.55, b=0.85):
         if value == -1:
@@ -160,6 +174,7 @@ class CheXpert(Dataset):
     def __getitem__(self, idx):
 
         image = cv2.imread(self._images_list[idx], 0)
+        print(image)
         image = Image.fromarray(image)
 
         if self.mode == 'train':
@@ -179,11 +194,13 @@ class CheXpert(Dataset):
 
 
 if __name__ == '__main__':
-    root = '\\\\hastur\\scratch\\hekalo\\Datasets\\CheXpert-v1.0-small\\'
-    trainSet = CheXpert(csv_path=root + 'train.csv', image_root_path=root, use_upsampling=False, use_frontal=True,
+    csv_path = '\\\\hastur\\scratch\\hekalo\\Datasets\\CheXpert-v1.0-small\\'
+    img_path = '\\\\hastur\\scratch\\hekalo\\Datasets\\'
+    trainSet = CheXpert(csv_path=csv_path + 'train.csv', image_root_path=img_path, use_upsampling=False, use_frontal=True,
                         image_size=320, mode='train', train_cols=["Pneumonia"])
-    testSet = CheXpert(csv_path=root + 'valid.csv', image_root_path=root, use_upsampling=False, use_frontal=True,
+    testSet = CheXpert(csv_path=csv_path + 'valid.csv', image_root_path=img_path, use_upsampling=False, use_frontal=True,
                        image_size=320, mode='valid', train_cols=["Pneumonia"])
+
     trainLoader = torch.utils.data.DataLoader(trainSet, batch_size=32, num_workers=2, drop_last=True, shuffle=True)
     testLoader = torch.utils.data.DataLoader(testSet, batch_size=32, num_workers=2, drop_last=False, shuffle=False)
 
