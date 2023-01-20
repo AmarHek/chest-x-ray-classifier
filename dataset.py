@@ -187,6 +187,4 @@ if __name__ == '__main__':
     trainLoader = torch.utils.data.DataLoader(trainSet, batch_size=32, num_workers=2, drop_last=True, shuffle=True)
     testLoader = torch.utils.data.DataLoader(testSet, batch_size=32, num_workers=2, drop_last=False, shuffle=False)
 
-    print(trainSet._labels_list)
-
 
