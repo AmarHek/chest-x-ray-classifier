@@ -33,29 +33,35 @@ class Trainer:
                  model: nn.Module,
                  train_set: Dataset,
                  valid_set: Dataset,
-                 criterion: str,
+                 loss: str,
                  optimizer: str,
                  learning_rate: float,
                  epochs: int,
                  lr_scheduler: list[str] or str,
-                 write_summary: bool,
                  early_stopping: bool,
                  early_stopping_patience: int = 5,
                  plateau_patience: int = 3,
                  exponential_gamma: float = 0.01,
-                 cyclic_lr: tuple[float, float] = (0.001, 0.01)
+                 cyclic_lr: tuple[float, float] = (0.001, 0.01),
+                 write_summary: bool = True,
                  ):
+
+        # various variable declarations
+        self.train_loader = None
+        self.valid_loader = None
+        self.loss_function = None
+        self.loss = None
+        self.optimizer_function = None
+        self.optimizer = None
+        self.device = None
+        self.writer = None
 
         # Basic necessities
         self.model = model
-        self.trainSet = train_set
-        self.validSet = valid_set
-        self.trainLoader = None
-        self.validLoader = None
-        self.lossFunction = None
-        self.optimizer = None
+        self.train_set = train_set
+        self.valid_set = valid_set
         self.lr_schedule = []
-        self.learningRate = learning_rate
+        self.learning_rate = learning_rate
         self.epochs = epochs
 
         # string and bool selectors
