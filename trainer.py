@@ -7,6 +7,28 @@ import libauc
 
 
 class Trainer:
+
+    optimizers = {
+        "adadelta": optim.adadelta,
+        "adagrad": optim.adagrad,
+        "adam": optim.Adam,
+        "adamw": optim.AdamW,
+        "adamax": optim.Adamax,
+        "sgd": optim.sgd,
+        "asgd": optim.asgd,
+        "nadam": optim.nadam,
+        "radam": optim.RAdam,
+        "rmsprop": optim.rmsprop,
+        "rprop": optim.rprop,
+        "lbfgs": optim.lbfgs
+    }
+
+    losses = {
+        "ce": nn.CrossEntropyLoss(),
+        "bce": nn.BCELoss(),
+        "hinge": nn.HingeEmbeddingLoss()
+    }
+
     def __init__(self,
                  model: nn.Module,
                  train_set: Dataset,
