@@ -65,6 +65,7 @@ class Trainer:
         self.lr_schedule = []
         self.learning_rate = learning_rate
         self.epochs = epochs
+        self.set_device()
 
         # string and bool selectors
         self.set_loss(loss)
@@ -100,17 +101,20 @@ class Trainer:
         assert new_optimizer in Trainer.optimizers.keys(), "Invalid optimizer!"
         self.optimizer = new_optimizer
 
-        assert criterion in losses.keys(), "Invalid loss function!"
-
-        self.lossFunction = losses[criterion]
-
-    def set_criterion_libauc(self):
-        # TODO
-        pass
+    def set_loss(self, new_loss: str):
+        mew_loss = new_loss.lower()
+        assert new_loss in Trainer.losses.keys(), "Invalid loss!"
+        self.loss = new_loss
 
     def early_stopping(self):
         # TODO
         pass
+
+    def set_device(self):
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    def set_summary_writer(self, location: str = None, comment: str = ""):
+        self.writer = SummaryWriter(log_dir=location, comment=comment)
 
     def train(self):
 
