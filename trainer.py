@@ -80,10 +80,10 @@ class Trainer:
         self.cyclic_lr = cyclic_lr
 
     def set_dataloaders(self, batch_size=32, num_workers=2):
-        self.trainLoader = DataLoader(self.trainSet, batch_size=batch_size,
-                                      num_workers=num_workers, drop_last=True, shuffle=True)
-        self.validLoader = DataLoader(self.validSet, batch_size=batch_size,
-                                      num_workers=num_workers, drop_last=False, shuffle=False)
+        self.train_loader = DataLoader(self.train_set, batch_size=batch_size,
+                                       num_workers=num_workers, drop_last=True, shuffle=True)
+        self.valid_loader = DataLoader(self.valid_set, batch_size=batch_size,
+                                       num_workers=num_workers, drop_last=False, shuffle=False)
 
     def set_optimizer_function(self):
         self.optimizer_function = Trainer.optimizers[self.optimizer](self.model.parameters(), lr=self.learning_rate)
@@ -92,14 +92,13 @@ class Trainer:
         # TODO: Implement libauc loss
         self.loss_function = Trainer.losses[self.loss]
 
-    def set_criterion(self):
-        criterion = self.criterion
+    def set_epochs(self, new_epochs: int):
+        self.epochs = new_epochs
 
-        losses = {
-            "ce": nn.CrossEntropyLoss(),
-            "bce": nn.BCELoss(),
-            "hinge": nn.HingeEmbeddingLoss()
-        }
+    def set_optimizer(self, new_optimizer: str):
+        new_optimizer = new_optimizer.lower()
+        assert new_optimizer in Trainer.optimizers.keys(), "Invalid optimizer!"
+        self.optimizer = new_optimizer
 
         assert criterion in losses.keys(), "Invalid loss function!"
 
