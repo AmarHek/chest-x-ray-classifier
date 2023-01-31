@@ -117,20 +117,82 @@ class Trainer:
         self.writer = SummaryWriter(log_dir=location, comment=comment)
 
     def train(self):
+        # initialize loss and optimizer functions
+        self.set_loss_function()
+        self.set_optimizer_function()
 
-        self.set_criterion()
-        self.set_optimizer()
+    def train_epoch(self, epoch):
+        # training for a single epoch
 
-        for epoch in range(self.epochs):
+        # switch model to training mode
+        self.model.train()
+        training_loss = 0
+        for batch, (images, labels) in enumerate(self.train_loader):
+            # move to device
+            images = images.to(self.device)
+            labels = labels.to(self.device)
 
-            running_loss = 0.0
-            for i, data in enumerate(self.tra)
+            # zero the gradients
+            self.optimizer_function.zero_grad()
 
-    def validate(self):
-        # TODO
-        pass
+            # forward + backward + optimize
+            pred = self.model(images)
+            loss = self.loss_function(pred, labels)
 
-    def save_model(self):
+            # backprop
+            loss.backward()
+            self.optimizer_function.step()
+
+            # Update training loss after each batch
+            training_loss += loss.item()
+            if batch % 2000 == 1999:
+                print(f'[{epoch + 1}, {batch + 1:5d}] loss: {training_loss / batch:.3f}')
+                if self.write_summary and self.writer is not None:
+                    self.writer.add_scalars('Loss/train', training_loss/2000)
+
+        del images, labels, loss
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        return training_loss/len(self.train_loader)
+
+    def validate(self, epoch):
+        # Put model in eval mode
+        self.model.eval()
+
+        # running loss
+        valid_loss = 0
+        # tensors to collect predictions and ground truths
+        predictions = torch.FloatTensor().to(self.device)
+        ground_truth = torch.FloatTensor().to(self.device)
+
+        with torch.no_grad():
+            for batch, (images, labels) in enumerate(self.valid_loader):
+                # move inputs to device
+                images = images.to(self.device)
+                labels = labels.to(self.device)
+
+                # Forward-pass
+                output = self.model(images)
+                loss = self.loss_function(output, labels)
+
+                # update containers
+                ground_truth = torch.cat((ground_truth, labels), 0)
+                predictions = torch.cat((predictions, output), 0)
+
+                # update validation loss after each batch
+                valid_loss += loss
+
+        print(f'Validation loss at epoch {epoch+1}: {valid_loss/len(self.valid_loader)}')
+
+        # Clear memory
+        del images, labels, loss
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        return valid_loss/len(self.valid_loader),
+
+    def save_model(self, location: str, model_name: str):
         # TODO
         pass
 
