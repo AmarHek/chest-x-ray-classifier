@@ -1,6 +1,6 @@
 import torch.nn as nn
 from dataset import CheXpert
-from torch.utils.data import DataLoader
+from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 import libauc
@@ -9,8 +9,8 @@ import libauc
 class Trainer:
     def __init__(self,
                  model: nn.Module,
-                 train_set: CheXpert,
-                 valid_set: CheXpert,
+                 train_set: Dataset,
+                 valid_set: Dataset,
                  criterion: str,
                  optimizer: str,
                  learning_rate: float,
@@ -28,6 +28,8 @@ class Trainer:
         self.model = model
         self.trainSet = train_set
         self.validSet = valid_set
+        self.trainLoader = None
+        self.validLoader = None
         self.lossFunction = None
         self.optimizer = None
         self.lr_schedule = []
@@ -46,6 +48,12 @@ class Trainer:
         self.plateau_patience = plateau_patience
         self.exponential_gamma = exponential_gamma
         self.cyclic_lr = cyclic_lr
+
+    def set_dataloaders(self, batch_size=32, num_workers=2):
+        self.trainLoader = DataLoader(self.trainSet, batch_size=batch_size,
+                                      num_workers=num_workers, drop_last=True, shuffle=True)
+        self.validLoader = DataLoader(self.validSet, batch_size=batch_size,
+                                      num_workers=num_workers, drop_last=False, shuffle=False)
 
     def set_optimizer(self):
         optimizer = self.optimizerFunction.lower()
@@ -95,7 +103,9 @@ class Trainer:
         self.set_optimizer()
 
         for epoch in range(self.epochs):
-            pass
+
+            running_loss = 0.0
+            for i, data in enumerate(self.tra)
 
     def validate(self):
         # TODO
