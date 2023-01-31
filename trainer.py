@@ -67,8 +67,8 @@ class Trainer:
         self.epochs = epochs
 
         # string and bool selectors
-        self.optimizerFunction = optimizer
-        self.criterion = criterion
+        self.set_loss(loss)
+        self.set_optimizer(optimizer)
         self.write_summary = write_summary
         self.lr_scheduler_list = lr_scheduler
         self.early_stopping = early_stopping
@@ -85,26 +85,12 @@ class Trainer:
         self.validLoader = DataLoader(self.validSet, batch_size=batch_size,
                                       num_workers=num_workers, drop_last=False, shuffle=False)
 
-    def set_optimizer(self):
-        optimizer = self.optimizerFunction.lower()
+    def set_optimizer_function(self):
+        self.optimizer_function = Trainer.optimizers[self.optimizer](self.model.parameters(), lr=self.learning_rate)
 
-        optimizers = {
-            "adadelta": optim.adadelta,
-            "adagrad": optim.adagrad,
-            "adam": optim.Adam,
-            "adamw": optim.AdamW,
-            "adamax": optim.Adamax,
-            "sgd": optim.sgd,
-            "asgd": optim.asgd,
-            "nadam": optim.nadam,
-            "radam": optim.RAdam,
-            "rmsprop": optim.rmsprop,
-            "rprop": optim.rprop,
-            "lbfgs": optim.lbfgs
-        }
-
-        assert optimizer in optimizers.keys(), "Invalid optimizer!"
-        self.optimizer = optimizers[optimizer](self.model.parameters(), lr=self.learningRate)
+    def set_loss_function(self):
+        # TODO: Implement libauc loss
+        self.loss_function = Trainer.losses[self.loss]
 
     def set_criterion(self):
         criterion = self.criterion
