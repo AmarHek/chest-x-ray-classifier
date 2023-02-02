@@ -51,9 +51,7 @@ class Trainer:
         # various variable declarations
         self.train_loader = None
         self.valid_loader = None
-        self.loss_function = None
         self.loss = None
-        self.optimizer_function = None
         self.optimizer = None
         self.device = None
         self.writer = None
@@ -66,6 +64,8 @@ class Trainer:
         self.learning_rate = learning_rate
         self.epochs = epochs
         self.set_device()
+        self.set_loss(loss)
+        self.set_optimizer(optimizer, learning_rate)
 
         # string and bool selectors
         self.set_loss(loss)
@@ -86,29 +86,19 @@ class Trainer:
         self.valid_loader = DataLoader(self.valid_set, batch_size=batch_size,
                                        num_workers=num_workers, drop_last=False, shuffle=False)
 
-    def set_optimizer_function(self):
-        self.optimizer_function = Trainer.optimizers[self.optimizer](self.model.parameters(), lr=self.learning_rate)
-
-    def set_loss_function(self):
-        # TODO: Implement libauc loss
-        self.loss_function = Trainer.losses[self.loss]
-
     def set_epochs(self, new_epochs: int):
         self.epochs = new_epochs
 
-    def set_optimizer(self, new_optimizer: str):
-        new_optimizer = new_optimizer.lower()
-        assert new_optimizer in Trainer.optimizers.keys(), "Invalid optimizer!"
-        self.optimizer = new_optimizer
+    def set_loss(self, loss):
+        loss = loss.lower()
+        assert loss in Trainer.losses.keys(), "Invalid loss!"
 
-    def set_loss(self, new_loss: str):
-        mew_loss = new_loss.lower()
-        assert new_loss in Trainer.losses.keys(), "Invalid loss!"
-        self.loss = new_loss
+        self.loss = Trainer.losses[self.loss]
 
-    def early_stopping(self):
-        # TODO
-        pass
+    def set_optimizer(self, optimizer, learning_rate):
+        optimizer = optimizer.lower()
+        assert optimizer in Trainer.optimizers.keys(), "Invalid optimizer!"
+        self.optimizer = Trainer.optimizers[self.optimizer](self.model.parameters(), lr=learning_rate)
 
     def set_device(self):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
