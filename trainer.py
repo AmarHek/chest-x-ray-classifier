@@ -271,7 +271,7 @@ class Trainer:
             # early stopping
             if self.early_stopping:
                 if self.check_early_stopping(condition):
-                    print("Early stopping")
+                    print(f"Early stopping at {epoch}")
                     break
 
     def save_model(self, model_path: str, epoch: int, score: float):
