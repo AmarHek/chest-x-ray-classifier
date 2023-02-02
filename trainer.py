@@ -45,6 +45,7 @@ class Trainer:
                  use_auc_on_val: bool = False,
                  early_stopping: bool = True,
                  early_stopping_patience: int = 5,
+                 lr_scheduler: str = None,
                  plateau_patience: int = 3,
                  exponential_gamma: float = 0.01,
                  cyclic_lr: tuple[float, float] = (0.001, 0.01),
@@ -56,6 +57,7 @@ class Trainer:
         self.valid_loader = None
         self.loss = None
         self.optimizer = None
+        self.lr_scheduler = None
         self.device = None
         self.writer = None
 
@@ -82,6 +84,11 @@ class Trainer:
         self.plateau_patience = plateau_patience
         self.exponential_gamma = exponential_gamma
         self.cyclic_lr = cyclic_lr
+        if lr_scheduler is not None:
+            self.set_lr_scheduler(lr_scheduler)
+
+    def set_device(self):
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
     def set_dataloaders(self, batch_size=32, num_workers=2):
         self.train_loader = DataLoader(self.train_set, batch_size=batch_size,
@@ -103,8 +110,23 @@ class Trainer:
         assert optimizer in Trainer.optimizers.keys(), "Invalid optimizer!"
         self.optimizer = Trainer.optimizers[self.optimizer](self.model.parameters(), lr=learning_rate)
 
-    def set_device(self):
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+    def set_lr_scheduler(self, lr_scheduler):
+        assert self.optimizer is not None, "Optimizer Function needs to be set before the scheduler!"
+
+        lr_scheduler = lr_scheduler.lower()
+        if lr_scheduler == "plateau":
+            self.lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer,
+                                                                           patience=self.plateau_patience)
+        elif lr_scheduler == "exponential_decay":
+            self.lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimizer,
+                                                                       gamma=self.exponential_gamma)
+        elif lr_scheduler == "cyclic":
+            self.lr_scheduler = torch.optim.lr_scheduler.CyclicLR(self.optimizer,
+                                                                  base_lr = self.cyclic_lr[0],
+                                                                  max_lr = self.cyclic_lr[1])
+        else:
+            self.lr_scheduler = None
+            "Invalid lr_scheduler specified!"
 
     def set_summary_writer(self, location: str = None, comment: str = ""):
         self.writer = SummaryWriter(log_dir=location, comment=comment)
