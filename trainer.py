@@ -76,11 +76,13 @@ class Trainer:
         self.save_on_epoch = save_on_epoch
         self.use_auc_on_val = use_auc_on_val
         self.write_summary = write_summary
-        self.lr_scheduler_list = lr_scheduler
-        self.early_stopping = early_stopping
 
-        # various hyperparameters
+        # early stopping
+        self.early_stopping = early_stopping
         self.early_stopping_patience = early_stopping_patience
+        self.early_stopping_tracker = 0
+
+        # learning rate schedules
         self.plateau_patience = plateau_patience
         self.exponential_gamma = exponential_gamma
         self.cyclic_lr = cyclic_lr
@@ -131,12 +133,15 @@ class Trainer:
     def set_summary_writer(self, location: str = None, comment: str = ""):
         self.writer = SummaryWriter(log_dir=location, comment=comment)
 
-    def train(self):
-        # initialize loss and optimizer functions
-        self.set_loss_function()
-        self.set_optimizer_function()
+    def check_early_stopping(self, improvement: bool) -> bool:
+        if improvement:
+            self.early_stopping_tracker = 0
+        else:
+            self.early_stopping_tracker += 1
 
-    def train_epoch(self, epoch):
+        return self.early_stopping_tracker > self.early_stopping_patience
+
+    def train_epoch(self, epoch) -> float:
         # training for a single epoch
 
         # switch model to training mode
