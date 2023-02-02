@@ -1,11 +1,13 @@
+import numpy as np
 import torch.cuda
 import torch.nn as nn
-from dataset import CheXpert
 from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 import libauc
-import numpy as np
+import os
+
+from metrics import multi_label_auroc
 
 
 class Trainer:
