@@ -33,7 +33,8 @@ class CheXpert(Dataset):
         assert os.path.isdir(image_root_path), 'Need a valid path for the images!'
         assert os.path.exists(csv_path), 'Need a valid path for the csv!'
         assert not (use_pa is True and use_ap is True), 'Cannot filter out both ap and pa!'
-        assert not (use_lsr_random is True and use_lsr_dam is True), 'Only one LSR method can be used!'
+        if use_lsr_random is True and use_lsr_dam is True:
+            print('Warning: Both LSR methods set to True. Only lsr_dam will be used.')
 
         self.mode = mode
         self.image_size = image_size
@@ -108,6 +109,14 @@ class CheXpert(Dataset):
             class_value_counts_dict = self.df[select_col].value_counts().to_dict()
             self.value_counts_dict[class_key] = class_value_counts_dict
 
+        # quick fix: if class contains no labels 0 or 1, set to 0
+        for class_key, select_col in enumerate(train_cols):
+            class_dict = self.value_counts_dict[class_key]
+            if 0.0 not in class_dict.keys():
+                class_dict[0.0] = 0
+            if 1.0 not in class_dict.keys():
+                class_dict[1.0] = 0
+
         self._labels_list = self.df[train_cols].values.tolist()
         self._images_list = [os.path.join(image_root_path, path) for path in self.df['Path'].tolist()]
         if assert_images:
@@ -174,7 +183,6 @@ class CheXpert(Dataset):
     def __getitem__(self, idx):
 
         image = cv2.imread(self._images_list[idx], 0)
-        print(image)
         image = Image.fromarray(image)
 
         if self.mode == 'train':
