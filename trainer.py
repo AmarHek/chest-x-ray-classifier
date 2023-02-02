@@ -41,6 +41,7 @@ class Trainer:
                  optimizer: str,
                  learning_rate: float,
                  epochs: int,
+                 batch_size: int = 32,
                  save_on_epoch: bool = True,
                  use_auc_on_val: bool = False,
                  early_stopping: bool = True,
@@ -65,6 +66,7 @@ class Trainer:
         self.model = model
         self.train_set = train_set
         self.valid_set = valid_set
+        self.set_dataloaders(batch_size)
         self.learning_rate = learning_rate
         self.epochs = epochs
         self.set_device()
@@ -104,12 +106,12 @@ class Trainer:
         loss = loss.lower()
         assert loss in Trainer.losses.keys(), "Invalid loss!"
 
-        self.loss = Trainer.losses[self.loss]
+        self.loss = Trainer.losses[loss]
 
     def set_optimizer(self, optimizer, learning_rate):
         optimizer = optimizer.lower()
         assert optimizer in Trainer.optimizers.keys(), "Invalid optimizer!"
-        self.optimizer = Trainer.optimizers[self.optimizer](self.model.parameters(), lr=learning_rate)
+        self.optimizer = Trainer.optimizers[optimizer](self.model.parameters(), lr=learning_rate)
 
     def set_lr_scheduler(self, lr_scheduler):
         assert self.optimizer is not None, "Optimizer Function needs to be set before the scheduler!"
@@ -123,8 +125,8 @@ class Trainer:
                                                                        gamma=self.exponential_gamma)
         elif lr_scheduler == "cyclic":
             self.lr_scheduler = torch.optim.lr_scheduler.CyclicLR(self.optimizer,
-                                                                  base_lr = self.cyclic_lr[0],
-                                                                  max_lr = self.cyclic_lr[1])
+                                                                  base_lr=self.cyclic_lr[0],
+                                                                  max_lr=self.cyclic_lr[1])
         else:
             self.lr_scheduler = None
             "Invalid lr_scheduler specified!"
@@ -219,16 +221,26 @@ class Trainer:
         # return average loss of val set and average auroc score
         return valid_loss/len(self.valid_loader), auc
 
-    def train(self, model_path: str, model_name_base: str, log_path: str = None):
+    def train(self, base_path: str, model_name_base: str, log_path_name: str = "logs"):
+
+        experiment_path = os.path.join(base_path, model_name_base)
+
+        # create experiment_path
+        if not os.path.isdir(experiment_path):
+            os.mkdir(experiment_path)
+
         # init best score depending on score criterion
         if self.use_auc_on_val:
             best_score = 0
         else:
             best_score = np.infty
 
+        # set model to device
+        self.model.to(self.device)
+
         # set up writer
         if self.write_summary:
-            assert log_path is not None, "write_summary set to True, but no log_path specified!"
+            log_path = os.path.join(base_path, log_path_name)
             self.set_summary_writer(location=log_path)
 
         for epoch in range(self.epochs):
@@ -256,7 +268,7 @@ class Trainer:
 
             # save model on epoch
             if self.save_on_epoch:
-                self.save_model(os.path.join(model_path, model_name_base + f"_epoch_{epoch}"), epoch, new_score)
+                self.save_model(os.path.join(base_path, model_name_base + f"_epoch_{epoch}"), epoch, new_score)
 
             # save best model
             if self.use_auc_on_val:
@@ -265,7 +277,7 @@ class Trainer:
                 condition = (best_score > new_score)
             if condition:
                 best_score = new_score
-                self.save_model(os.path.join(model_path, model_name_base + "_best"), epoch, best_score)
+                self.save_model(os.path.join(base_path, model_name_base + "_best"), epoch, best_score)
 
             # early stopping
             if self.early_stopping:
