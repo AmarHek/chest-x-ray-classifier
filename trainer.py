@@ -240,7 +240,7 @@ class Trainer:
 
         # set up writer
         if self.write_summary:
-            log_path = os.path.join(base_path, log_path_name)
+            log_path = os.path.join(experiment_path, log_path_name)
             self.set_summary_writer(location=log_path)
 
         for epoch in range(self.epochs):
