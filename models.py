@@ -68,7 +68,7 @@ def sequential_model(architecture: str, n_classes: int, finetune: bool = False, 
                                    classifier_function)
 
     # replace the pretrained model's classifier with our new one
-    if "resnset" in architecture or "inception" in architecture:
+    if "resnet" in architecture or "inception" in architecture:
         model.fc = classifier
     else:
         model.classifier = classifier
@@ -77,9 +77,5 @@ def sequential_model(architecture: str, n_classes: int, finetune: bool = False, 
 
 
 if __name__ == "__main__":
-    architecture = "inception_v3"
-    classifier_function = "Sigmoid"
-    n_classes = 5
-
-    model = sequential_model(architecture, n_classes, classifier_function=classifier_function)
+    model = sequential_model("inception_v3", 5, classifier_function="sigmoid")
     print(model)
