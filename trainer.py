@@ -227,8 +227,60 @@ class Trainer:
         else:
             best_score = np.infty
 
-    def save_model(self, location: str, model_name: str):
-        # TODO
-        pass
+        # set up writer
+        if self.write_summary:
+            assert log_path is not None, "write_summary set to True, but no log_path specified!"
+            self.set_summary_writer(location=log_path)
 
+        for epoch in range(self.epochs):
 
+            # Training
+            train_loss = self.train_epoch(epoch)
+
+            # Validation
+            val_loss, val_auc = self.validate(epoch)
+
+            if self.use_auc_on_val:
+                new_score = val_auc
+            else:
+                new_score = val_loss
+
+            # write summary
+            if self.write_summary and self.writer is not None:
+                self.writer.add_scalars('Loss/train', train_loss, epoch+1)
+                self.writer.add_scalars('Loss/val', val_loss, epoch+1)
+                self.writer.add_scalars('AUC/val', val_auc, epoch+1)
+
+            # update learning rate
+            if self.lr_scheduler is not None:
+                self.lr_scheduler.step()
+
+            # save model on epoch
+            if self.save_on_epoch:
+                self.save_model(os.path.join(model_path, model_name_base + f"_epoch_{epoch}"), epoch, new_score)
+
+            # save best model
+            if self.use_auc_on_val:
+                condition = (best_score < new_score)
+            else:
+                condition = (best_score > new_score)
+            if condition:
+                best_score = new_score
+                self.save_model(os.path.join(model_path, model_name_base + "_best"), epoch, best_score)
+
+            # early stopping
+            if self.early_stopping:
+                if self.check_early_stopping(condition):
+                    print("Early stopping")
+                    break
+
+    def save_model(self, model_path: str, epoch: int, score: float):
+        if self.use_auc_on_val:
+            score_name = "Val_AUC"
+        else:
+            score_name = "Val_Loss"
+        self.model.save({"model": self.model.state_dict(),
+                         "optimizer": self.optimizer.state_dict(),
+                         "epoch": epoch,
+                         "score_name": score_name,
+                         "score": score}, model_path)
