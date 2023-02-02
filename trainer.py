@@ -123,27 +123,29 @@ class Trainer:
             labels = labels.to(self.device)
 
             # zero the gradients
-            self.optimizer_function.zero_grad()
+            self.optimizer.zero_grad()
 
             # forward + backward + optimize
             pred = self.model(images)
-            loss = self.loss_function(pred, labels)
+            loss = self.loss(pred, labels)
 
             # backprop
             loss.backward()
-            self.optimizer_function.step()
+            self.optimizer.step()
 
             # Update training loss after each batch
             training_loss += loss.item()
             if batch % 2000 == 1999:
                 print(f'[{epoch + 1}, {batch + 1:5d}] loss: {training_loss / batch:.3f}')
-                if self.write_summary and self.writer is not None:
-                    self.writer.add_scalars('Loss/train', training_loss/2000)
+                # if self.write_summary and self.writer is not None:
+                #     self.writer.add_scalars('Loss/train', training_loss/(batch+1), (epoch+1)*(batch+1))
 
+        # clear memory
         del images, labels, loss
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
+        # return average loss of training set
         return training_loss/len(self.train_loader)
 
     def validate(self, epoch):
