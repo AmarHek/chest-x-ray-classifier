@@ -13,18 +13,18 @@ from metrics import multi_label_auroc
 class Trainer:
 
     optimizers = {
-        "adadelta": optim.adadelta,
-        "adagrad": optim.adagrad,
+        "adadelta": optim.Adadelta,
+        "adagrad": optim.Adagrad,
         "adam": optim.Adam,
         "adamw": optim.AdamW,
         "adamax": optim.Adamax,
-        "sgd": optim.sgd,
-        "asgd": optim.asgd,
-        "nadam": optim.nadam,
+        "sgd": optim.SGD,
+        "asgd": optim.ASGD,
+        "nadam": optim.NAdam,
         "radam": optim.RAdam,
-        "rmsprop": optim.rmsprop,
-        "rprop": optim.rprop,
-        "lbfgs": optim.lbfgs
+        "rmsprop": optim.RMSprop,
+        "rprop": optim.Rprop,
+        "lbfgs": optim.LBFGS
     }
 
     losses = {
