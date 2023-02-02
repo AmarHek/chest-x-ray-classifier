@@ -65,7 +65,6 @@ class Trainer:
         self.model = model
         self.train_set = train_set
         self.valid_set = valid_set
-        self.lr_schedule = []
         self.learning_rate = learning_rate
         self.epochs = epochs
         self.set_device()
