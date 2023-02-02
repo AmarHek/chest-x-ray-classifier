@@ -178,7 +178,7 @@ class Trainer:
         # return average loss of training set
         return training_loss/len(self.train_loader)
 
-    def validate(self, epoch):
+    def validate(self, epoch) -> (float, float):
         # Put model in eval mode
         self.model.eval()
 
@@ -196,7 +196,7 @@ class Trainer:
 
                 # Forward-pass
                 output = self.model(images)
-                loss = self.loss_function(output, labels)
+                loss = self.loss(output, labels)
 
                 # update containers
                 ground_truth = torch.cat((ground_truth, labels), 0)
@@ -204,15 +204,28 @@ class Trainer:
 
                 # update validation loss after each batch
                 valid_loss += loss
-
+        auc = multi_label_auroc(ground_truth, predictions, average='micro')
         print(f'Validation loss at epoch {epoch+1}: {valid_loss/len(self.valid_loader)}')
+        print(f'Micro-averaged AUC at epoch {epoch+1}: {auc}')
+
+        # if self.write_summary and self.writer is not None:
+        #     self.writer.add_scalars('Loss/val', valid_loss/len(self.valid_loader), (epoch+1)*len(self.train_loader))
+        #     self.writer.add_scalars('AUC/val', auc, (epoch+1)*len(self.train_loader))
 
         # Clear memory
         del images, labels, loss
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-        return valid_loss/len(self.valid_loader),
+        # return average loss of val set and average auroc score
+        return valid_loss/len(self.valid_loader), auc
+
+    def train(self, model_path: str, model_name_base: str, log_path: str = None):
+        # init best score depending on score criterion
+        if self.use_auc_on_val:
+            best_score = 0
+        else:
+            best_score = np.infty
 
     def save_model(self, location: str, model_name: str):
         # TODO
