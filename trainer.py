@@ -39,8 +39,9 @@ class Trainer:
                  optimizer: str,
                  learning_rate: float,
                  epochs: int,
-                 lr_scheduler: list[str] or str,
-                 early_stopping: bool,
+                 save_on_epoch: bool = True,
+                 use_auc_on_val: bool = False,
+                 early_stopping: bool = True,
                  early_stopping_patience: int = 5,
                  plateau_patience: int = 3,
                  exponential_gamma: float = 0.01,
@@ -68,8 +69,8 @@ class Trainer:
         self.set_optimizer(optimizer, learning_rate)
 
         # string and bool selectors
-        self.set_loss(loss)
-        self.set_optimizer(optimizer)
+        self.save_on_epoch = save_on_epoch
+        self.use_auc_on_val = use_auc_on_val
         self.write_summary = write_summary
         self.lr_scheduler_list = lr_scheduler
         self.early_stopping = early_stopping
