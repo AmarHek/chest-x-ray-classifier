@@ -1,7 +1,6 @@
 import torchvision.models
 import torch.nn as nn
 
-
 def get_pretrained_model(architecture: str, pretrained: bool = True) -> nn.Module:
     architectures = {
         "densenet121": torchvision.models.densenet121,
@@ -20,11 +19,33 @@ def get_pretrained_model(architecture: str, pretrained: bool = True) -> nn.Modul
         "inception_v3": torchvision.models.inception_v3
     }
 
+    weights_dict = {
+        "densenet121": torchvision.models.DenseNet121_Weights.DEFAULT,
+        "densenet161": torchvision.models.DenseNet161_Weights.DEFAULT,
+        "efficientnet_b1": torchvision.models.EfficientNet_B1_Weights.DEFAULT,
+        "efficientnet_b2": torchvision.models.EfficientNet_B2_Weights.DEFAULT,
+        "efficientnet_v2_s": torchvision.models.EfficientNet_V2_S_Weights.DEFAULT,
+        "efficientnet_v2_m": torchvision.models.EfficientNet_V2_M_Weights.DEFAULT,
+        "efficientnet_v2_l": torchvision.models.EfficientNet_V2_L_Weights.DEFAULT,
+        "resnet50": torchvision.models.ResNet50_Weights.DEFAULT,
+        "resnet101": torchvision.models.ResNet101_Weights.DEFAULT,
+        "resnet152": torchvision.models.ResNet152_Weights.DEFAULT,
+        "resnext50_32x4d": torchvision.models.ResNeXt50_32X4D_Weights.DEFAULT,
+        "resnext101_32x8d": torchvision.models.ResNeXt101_32X8D_Weights.DEFAULT,
+        "resnext101_64x4d": torchvision.models.ResNeXt101_64X4D_Weights.DEFAULT,
+        "inception_v3": torchvision.models.Inception_V3_Weights.DEFAULT
+    }
+
     architecture = architecture.lower()
 
     assert architecture in architectures.keys(), "%s is an invalid architecture!" % architecture
 
-    return architectures[architecture](pretrained=pretrained)
+    if pretrained:
+        weights = weights_dict[architecture]
+    else:
+        weights = None
+
+    return architectures[architecture](weights=weights)
 
 
 def get_classifier_function(classifier_function: str):
@@ -43,12 +64,12 @@ def get_classifier_function(classifier_function: str):
     return classifier_functions[classifier_function]
 
 
-def sequential_model(architecture: str, n_classes: int, finetune: bool = False, long_classifier: bool = False,
-                     classifier_function: str = "sigmoid", dropout: float = 0.2) -> nn.Module:
+def sequential_model(architecture: str, n_classes: int, pretrained: bool = True, finetune: bool = False,
+                     long_classifier: bool = False, classifier_function: str = "sigmoid",
+                     dropout: float = 0.2) -> nn.Module:
 
     # get pretrained model and classifier function
-    model = get_pretrained_model(architecture)
-    print(model)
+    model = get_pretrained_model(architecture, pretrained=pretrained)
     classifier_function = get_classifier_function(classifier_function)
 
     # freeze all pretrained layers if wanted
