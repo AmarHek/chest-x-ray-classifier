@@ -6,6 +6,7 @@ import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 import libauc
 import os
+from tqdm import tqdm
 
 from metrics import multi_label_auroc
 
@@ -148,6 +149,9 @@ class Trainer:
         # switch model to training mode
         self.model.train()
         training_loss = 0
+
+        print(f'Training at epoch {epoch}...')
+
         for batch, (images, labels) in enumerate(self.train_loader):
             # move to device
             images = images.to(self.device)
@@ -180,6 +184,9 @@ class Trainer:
         return training_loss/len(self.train_loader)
 
     def validate(self, epoch) -> (float, float):
+
+        print(f'Validating at epoch {epoch}...')
+
         # Put model in eval mode
         self.model.eval()
 
