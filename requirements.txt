@@ -1,0 +1,9 @@
+torchvision~=0.14.1+cu116
+torch~=1.13.1+cu116
+libauc~=1.2.0
+numpy~=1.24.1
+tqdm~=4.64.1
+opencv-python~=4.5.5.64
+pandas~=1.5.3
+Pillow~=9.4.0
+scikit-learn~=1.2.0
