@@ -8,7 +8,7 @@ import libauc
 import os
 from tqdm import tqdm
 
-from metrics import multi_label_auroc
+from .metrics import multi_label_auroc
 
 
 class Trainer:
