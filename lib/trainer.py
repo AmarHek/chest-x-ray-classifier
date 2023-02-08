@@ -96,8 +96,10 @@ class Trainer:
 
     def set_device(self):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"Device set to {self.device}.")
 
     def set_dataloaders(self, batch_size=32, num_workers=2):
+        print("Setting up dataloaders")
         self.train_loader = DataLoader(self.train_set, batch_size=batch_size,
                                        num_workers=num_workers, drop_last=True, shuffle=True)
         self.valid_loader = DataLoader(self.valid_set, batch_size=batch_size,
@@ -140,9 +142,11 @@ class Trainer:
 
     def check_early_stopping(self, improvement: bool) -> bool:
         if improvement:
+            print("Improvement detected, resetting early stopping patience.")
             self.early_stopping_tracker = 0
         else:
             self.early_stopping_tracker += 1
+            print(f"No improvement. Incrementing Early Stopping tracker to {self.early_stopping_tracker}")
 
         return self.early_stopping_tracker > self.early_stopping_patience
 
@@ -235,14 +239,19 @@ class Trainer:
 
         experiment_path = os.path.join(base_path, model_name_base)
 
+        print(f'Starting training at path {experiment_path}.')
+
         # create experiment_path
         if not os.path.isdir(experiment_path):
+            print(f"{experiment_path} does not exist. Creating directory.")
             os.mkdir(experiment_path)
 
         # init best score depending on score criterion
         if self.use_auc_on_val:
+            print("AUC picked as val improvement score.")
             best_score = 0
         else:
+            print("Loss picked as val improvement score.")
             best_score = np.infty
 
         # set model to device
@@ -251,9 +260,10 @@ class Trainer:
         # set up writer
         if self.write_summary:
             log_path = os.path.join(experiment_path, log_path_name)
+            print(f"Summary Writer enabled, setting up with log_path {log_path}")
             self.set_summary_writer(location=log_path)
 
-        for epoch in range(self.epochs):
+        for epoch in tqdm(range(self.epochs)):
 
             # Training
             train_loss = self.train_epoch(epoch)
@@ -286,6 +296,7 @@ class Trainer:
             else:
                 condition = (best_score > new_score)
             if condition:
+                print(f'Model improved at epoch {epoch}, saving model.')
                 best_score = new_score
                 self.save_model(os.path.join(base_path, model_name_base + "_best"), epoch, best_score)
 
