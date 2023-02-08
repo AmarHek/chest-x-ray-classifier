@@ -14,8 +14,8 @@ if __name__ == '__main__':
 
     architecture = args.architecture
 
-    csv_path = '//hastur/scratch/hekalo/Datasets/CheXpert-v1.0-small/'
-    img_path = '//hastur/scratch/hekalo/Datasets/'
+    csv_path = '/scratch/hekalo/Datasets/CheXpert-v1.0-small/'
+    img_path = '/scratch/hekalo/Datasets/'
 
     classes = ["Cardiomegaly", "Edema", "Consolidation",
                "Pneumonia", "Atelectasis", "Pleural Effusion"]
@@ -40,7 +40,7 @@ if __name__ == '__main__':
                       lr_scheduler="reduce",
                       plateau_patience=5)
 
-    model_path = "//hastur/scratch/hekalo/Models/labels_chexpert/bce/chexternal/"
+    model_path = "/scratch/hekalo/Models/labels_chexpert/bce/chexternal/"
     model_name_base = architecture
 
     trainer.train(model_path, model_name_base)

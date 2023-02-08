@@ -14,8 +14,8 @@ if __name__ == '__main__':
 
     architecture = args.architecture
 
-    csv_path = '//hastur/scratch/hekalo/Datasets/CheXpert-v1.0-small/'
-    img_path = '//hastur/scratch/hekalo/Datasets/'
+    csv_path = '/scratch/hekalo/Datasets/CheXpert-v1.0-small/'
+    img_path = '/scratch/hekalo/Datasets/'
 
     classes = ["Enlarged Cardiomediastinum","Cardiomegaly","Lung Opacity","Lung Lesion","Edema","Consolidation",
                "Pneumonia","Atelectasis","Pneumothorax","Pleural Effusion","Pleural Other","Fracture","Support Devices"]
