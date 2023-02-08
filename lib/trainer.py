@@ -159,7 +159,7 @@ class Trainer:
 
         print(f'Training at epoch {epoch}...')
 
-        for batch, (images, labels) in enumerate(self.train_loader):
+        for batch, (images, labels) in enumerate(tqdm(self.train_loader)):
             # move to device
             images = images.to(self.device)
             labels = labels.to(self.device)
@@ -177,15 +177,15 @@ class Trainer:
 
             # Update training loss after each batch
             training_loss += loss.item()
-            if batch % (self.update_steps - 1) == 0:
-                print(f'[{epoch + 1}, {batch + 1:5d}] loss: {training_loss / batch:.3f}')
+            if (batch + 1) % self.update_steps == 0:
+                print(f'[{epoch + 1}, {batch + 1:5d}] loss: {training_loss / (batch+1):.3f}')
                 if self.write_summary and self.writer is not None:
                     self.writer.add_scalars('Loss/train', training_loss/(batch+1), (epoch+1)*(batch+1))
 
         # clear memory
-        del images, labels, loss
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+        # del images, labels, loss
+        # if torch.cuda.is_available():
+        #     torch.cuda.empty_cache()
 
         # return average loss of training set
         return training_loss/len(self.train_loader)
@@ -204,7 +204,7 @@ class Trainer:
         ground_truth = torch.FloatTensor().to(self.device)
 
         with torch.no_grad():
-            for batch, (images, labels) in enumerate(self.valid_loader):
+            for batch, (images, labels) in enumerate(tqdm(self.valid_loader)):
                 # move inputs to device
                 images = images.to(self.device)
                 labels = labels.to(self.device)
@@ -228,9 +228,9 @@ class Trainer:
             self.writer.add_scalars('AUC/val', auc, (epoch+1)*len(self.train_loader))
 
         # Clear memory
-        del images, labels, loss
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+        # del images, labels, loss
+        # if torch.cuda.is_available():
+        #     torch.cuda.empty_cache()
 
         # return average loss of val set and average auroc score
         return valid_loss/len(self.valid_loader), auc
@@ -266,7 +266,7 @@ class Trainer:
         for epoch in tqdm(range(self.epochs)):
 
             # Training
-            train_loss = self.train_epoch(epoch)
+            self.train_epoch(epoch)
 
             # Validation
             val_loss, val_auc = self.validate(epoch)
