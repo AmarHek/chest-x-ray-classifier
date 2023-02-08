@@ -68,6 +68,7 @@ class Trainer:
         self.model = model
         self.train_set = train_set
         self.valid_set = valid_set
+        self.batch_size = batch_size
         self.set_dataloaders(batch_size)
         self.update_steps = update_steps
         self.learning_rate = learning_rate
