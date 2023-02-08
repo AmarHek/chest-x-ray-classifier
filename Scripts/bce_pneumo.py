@@ -34,6 +34,7 @@ if __name__ == '__main__':
                       learning_rate=0.01,
                       epochs=100,
                       batch_size=32,
+                      update_steps=1000,
                       early_stopping_patience=10,
                       lr_scheduler="reduce",
                       plateau_patience=5)
