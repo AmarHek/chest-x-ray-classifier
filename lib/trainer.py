@@ -43,6 +43,7 @@ class Trainer:
                  learning_rate: float,
                  epochs: int,
                  batch_size: int = 32,
+                 update_steps: int = 2000,
                  save_on_epoch: bool = True,
                  use_auc_on_val: bool = False,
                  early_stopping: bool = True,
@@ -68,6 +69,7 @@ class Trainer:
         self.train_set = train_set
         self.valid_set = valid_set
         self.set_dataloaders(batch_size)
+        self.update_steps = update_steps
         self.learning_rate = learning_rate
         self.epochs = epochs
         self.set_device()
@@ -170,10 +172,10 @@ class Trainer:
 
             # Update training loss after each batch
             training_loss += loss.item()
-            if batch % 2000 == 1999:
+            if batch % (self.update_steps - 1) == 0:
                 print(f'[{epoch + 1}, {batch + 1:5d}] loss: {training_loss / batch:.3f}')
-                # if self.write_summary and self.writer is not None:
-                #     self.writer.add_scalars('Loss/train', training_loss/(batch+1), (epoch+1)*(batch+1))
+                if self.write_summary and self.writer is not None:
+                    self.writer.add_scalars('Loss/train', training_loss/(batch+1), (epoch+1)*(batch+1))
 
         # clear memory
         del images, labels, loss
@@ -216,9 +218,9 @@ class Trainer:
         print(f'Validation loss at epoch {epoch+1}: {valid_loss/len(self.valid_loader)}')
         print(f'Micro-averaged AUC at epoch {epoch+1}: {auc}')
 
-        # if self.write_summary and self.writer is not None:
-        #     self.writer.add_scalars('Loss/val', valid_loss/len(self.valid_loader), (epoch+1)*len(self.train_loader))
-        #     self.writer.add_scalars('AUC/val', auc, (epoch+1)*len(self.train_loader))
+        if self.write_summary and self.writer is not None:
+            self.writer.add_scalars('Loss/val', valid_loss/len(self.valid_loader), (epoch+1)*len(self.train_loader))
+            self.writer.add_scalars('AUC/val', auc, (epoch+1)*len(self.train_loader))
 
         # Clear memory
         del images, labels, loss
@@ -263,11 +265,11 @@ class Trainer:
             else:
                 new_score = val_loss
 
-            # write summary
-            if self.write_summary and self.writer is not None:
-                self.writer.add_scalars('Loss/train', train_loss, epoch+1)
-                self.writer.add_scalars('Loss/val', val_loss, epoch+1)
-                self.writer.add_scalars('AUC/val', val_auc, epoch+1)
+            # # write summary
+            # if self.write_summary and self.writer is not None:
+            #     self.writer.add_scalars('Loss/train', train_loss, epoch+1)
+            #     self.writer.add_scalars('Loss/val', val_loss, epoch+1)
+            #     self.writer.add_scalars('AUC/val', val_auc, epoch+1)
 
             # update learning rate
             if self.lr_scheduler is not None:
