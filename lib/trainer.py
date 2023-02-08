@@ -180,7 +180,7 @@ class Trainer:
             if (batch + 1) % self.update_steps == 0:
                 print(f'[{epoch + 1}, {batch + 1:5d}] loss: {training_loss / (batch+1):.3f}')
                 if self.write_summary and self.writer is not None:
-                    self.writer.add_scalars('Loss/train', training_loss/(batch+1), (epoch+1)*(batch+1))
+                    self.writer.add_scalar('Loss/train', training_loss/(batch+1), (epoch+1)*(batch+1))
 
         # clear memory
         # del images, labels, loss
@@ -204,7 +204,7 @@ class Trainer:
         ground_truth = torch.FloatTensor().to(self.device)
 
         with torch.no_grad():
-            for batch, (images, labels) in enumerate(tqdm(self.valid_loader)):
+            for batch, (images, labels) in enumerate(self.valid_loader):
                 # move inputs to device
                 images = images.to(self.device)
                 labels = labels.to(self.device)
@@ -218,14 +218,14 @@ class Trainer:
                 predictions = torch.cat((predictions, output), 0)
 
                 # update validation loss after each batch
-                valid_loss += loss
+                valid_loss += loss.item()
         auc = multi_label_auroc(ground_truth, predictions, average='micro')
         print(f'Validation loss at epoch {epoch+1}: {valid_loss/len(self.valid_loader)}')
         print(f'Micro-averaged AUC at epoch {epoch+1}: {auc}')
 
         if self.write_summary and self.writer is not None:
-            self.writer.add_scalars('Loss/val', valid_loss/len(self.valid_loader), (epoch+1)*len(self.train_loader))
-            self.writer.add_scalars('AUC/val', auc, (epoch+1)*len(self.train_loader))
+            self.writer.add_scalar('Loss/val', valid_loss/len(self.valid_loader), (epoch+1)*len(self.train_loader))
+            self.writer.add_scalar('AUC/val', auc, (epoch+1)*len(self.train_loader))
 
         # Clear memory
         # del images, labels, loss
@@ -278,17 +278,18 @@ class Trainer:
 
             # # write summary
             # if self.write_summary and self.writer is not None:
-            #     self.writer.add_scalars('Loss/train', train_loss, epoch+1)
-            #     self.writer.add_scalars('Loss/val', val_loss, epoch+1)
-            #     self.writer.add_scalars('AUC/val', val_auc, epoch+1)
+            #     self.writer.add_scalar('Loss/train', train_loss, epoch+1)
+            #     self.writer.add_scalar('Loss/val', val_loss, epoch+1)
+            #     self.writer.add_scalar('AUC/val', val_auc, epoch+1)
 
             # update learning rate
             if self.lr_scheduler is not None:
                 self.lr_scheduler.step()
+                print(f'Learning rate is at {self.lr_scheduler.get_lr()}')
 
             # save model on epoch
             if self.save_on_epoch:
-                self.save_model(os.path.join(base_path, model_name_base + f"_epoch_{epoch}"), epoch, new_score)
+                self.save_model(os.path.join(experiment_path, model_name_base + f"_epoch_{epoch}"), epoch, new_score)
 
             # save best model
             if self.use_auc_on_val:
@@ -298,7 +299,7 @@ class Trainer:
             if condition:
                 print(f'Model improved at epoch {epoch}, saving model.')
                 best_score = new_score
-                self.save_model(os.path.join(base_path, model_name_base + "_best"), epoch, best_score)
+                self.save_model(os.path.join(experiment_path, model_name_base + "_best"), epoch, best_score)
 
             # early stopping
             if self.early_stopping:
@@ -311,8 +312,8 @@ class Trainer:
             score_name = "Val_AUC"
         else:
             score_name = "Val_Loss"
-        self.model.save({"model": self.model.state_dict(),
-                         "optimizer": self.optimizer.state_dict(),
-                         "epoch": epoch,
-                         "score_name": score_name,
-                         "score": score}, model_path)
+        torch.save({"model": self.model.state_dict(),
+                    "optimizer": self.optimizer.state_dict(),
+                    "epoch": epoch,
+                    "score_name": score_name,
+                    "score": score}, model_path)
