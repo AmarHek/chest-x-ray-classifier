@@ -60,7 +60,7 @@ class Trainer:
         self.valid_loader = None
         self.loss = None
         self.optimizer = None
-        self.lr_scheduler = None
+        self.scheduler = None
         self.device = None
         self.writer = None
 
@@ -88,11 +88,10 @@ class Trainer:
         self.early_stopping_tracker = 0
 
         # learning rate schedules
+        self.lr_scheduler = lr_scheduler
         self.plateau_patience = plateau_patience
         self.exponential_gamma = exponential_gamma
         self.cyclic_lr = cyclic_lr
-        if lr_scheduler is not None:
-            self.set_lr_scheduler(lr_scheduler)
 
     def set_device(self):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -119,23 +118,24 @@ class Trainer:
         assert optimizer in Trainer.optimizers.keys(), "Invalid optimizer!"
         self.optimizer = Trainer.optimizers[optimizer](self.model.parameters(), lr=learning_rate)
 
-    def set_lr_scheduler(self, lr_scheduler):
+    def set_lr_scheduler(self, mode: str = "min"):
         assert self.optimizer is not None, "Optimizer Function needs to be set before the scheduler!"
 
-        lr_scheduler = lr_scheduler.lower()
+        lr_scheduler = self.lr_scheduler.lower()
         if lr_scheduler == "plateau":
-            self.lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer,
-                                                                           patience=self.plateau_patience)
+            self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer,
+                                                                        mode=mode,
+                                                                        patience=self.plateau_patience)
         elif lr_scheduler == "exponential_decay":
-            self.lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimizer,
-                                                                       gamma=self.exponential_gamma)
+            self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimizer,
+                                                                    gamma=self.exponential_gamma)
         elif lr_scheduler == "cyclic":
-            self.lr_scheduler = torch.optim.lr_scheduler.CyclicLR(self.optimizer,
-                                                                  base_lr=self.cyclic_lr[0],
-                                                                  max_lr=self.cyclic_lr[1])
+            self.scheduler = torch.optim.lr_scheduler.CyclicLR(self.optimizer,
+                                                               base_lr=self.cyclic_lr[0],
+                                                               max_lr=self.cyclic_lr[1])
         else:
-            self.lr_scheduler = None
-            "Invalid lr_scheduler specified!"
+            self.scheduler = None
+            print("Invalid lr_scheduler specified!")
 
     def set_summary_writer(self, location: str = None, comment: str = ""):
         self.writer = SummaryWriter(log_dir=location, comment=comment)
@@ -249,10 +249,16 @@ class Trainer:
         # init best score depending on score criterion
         if self.use_auc_on_val:
             print("AUC picked as val improvement score.")
+            mode = "max"
             best_score = 0
         else:
             print("Loss picked as val improvement score.")
+            mode = "min"
             best_score = np.infty
+
+        if self.lr_scheduler is not None:
+            print(f"Setting up scheduler {self.lr_scheduler}")
+            self.set_lr_scheduler(mode=mode)
 
         # set model to device
         self.model.to(self.device)
@@ -283,9 +289,10 @@ class Trainer:
             #     self.writer.add_scalar('AUC/val', val_auc, epoch+1)
 
             # update learning rate
-            if self.lr_scheduler is not None:
-                self.lr_scheduler.step()
-                print(f'Learning rate is at {self.lr_scheduler.get_lr()}')
+            if self.lr_scheduler == "plateau":
+                self.scheduler.step(new_score)
+            elif self.scheduler is not None:
+                self.scheduler.step()
 
             # save model on epoch
             if self.save_on_epoch:
