@@ -53,6 +53,7 @@ class Trainer:
                  exponential_gamma: float = 0.01,
                  cyclic_lr: tuple[float, float] = (0.001, 0.01),
                  write_summary: bool = True,
+                 seed: int = 42069
                  ):
 
         # various variable declarations
@@ -76,6 +77,7 @@ class Trainer:
         self.set_device()
         self.set_loss(loss)
         self.set_optimizer(optimizer, learning_rate)
+        self.seed = seed
 
         # string and bool selectors
         self.save_on_epoch = save_on_epoch
@@ -237,7 +239,11 @@ class Trainer:
 
     def train(self, base_path: str, model_name_base: str, log_path_name: str = "logs"):
 
+        # set up path
         experiment_path = os.path.join(base_path, model_name_base)
+
+        # set seed
+        torch.manual_seed(self.seed)
 
         print(f'Starting training at path {experiment_path}.')
 
