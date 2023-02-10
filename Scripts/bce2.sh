@@ -8,13 +8,12 @@ export PYTHONPATH
 
 # Define model names
 architectures=(
-  "densenet121"
-  "efficientnet_b1"
-  "efficientnet_v2_s"
-  "efficientnet_v2_m"
-  "resnet50"
-  "resnet101"
-  "inception_v3"
+  "efficientnet_b2"
+  "resnet152"
+  "densenet161"
+  "efficientnet_v2_l"
+  "resnext101_32x4d"
+  "resnext101_64x4d"
 )
 
 classes_sets=(
