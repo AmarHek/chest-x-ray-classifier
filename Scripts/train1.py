@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
     parser.add_argument("--update_steps", type=int, default=1000)
     parser.add_argument("--es_patience", type=int, default=10)
-    parser.add_argument("--lr_scheduler", type=int, default="plateau")
+    parser.add_argument("--lr_scheduler", type=str, default="plateau")
 
     args = parser.parse_args()
 

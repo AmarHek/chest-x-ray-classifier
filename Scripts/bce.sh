@@ -26,7 +26,7 @@ classes_sets=(
   "chexpert"
 )
 
-model_path_base="/scratch/hekalo/Models/labels_chexpert/bce/"
+model_path="/scratch/hekalo/Models/labels_chexpert/bce/"
 
 csv_path="/scratch/hekalo/Datasets/CheXpert-v1.0-small/"
 img_path="/scratch/hekalo/Datasets/"
@@ -41,11 +41,10 @@ epochs=100
 for architecture in "${architectures[@]}"; do
   # Iterate through classes
   for classes in "${classes_sets[@]}"; do
-    model_path=$model_path_base$classes
     # Submit the script as a SLURM job with the current combination of model_name_or_path and dataset_names_or_paths
     sbatch -p ls6 --gres=gpu:rtx2080ti:1 --wrap="python train1.py --architecture=$architecture --classes=$classes
     --model_path=$model_path$classes --csv_path=$csv_path --img_path=$img_path --image_size=$image_size
-    --loss=$loss --optimizer=$optimizer --learning_rate=$learning_rate  --batch_size=$batch_size
+    --loss=$loss --optimizer=$optimizer --learning_rate=$learning_rate --batch_size=$batch_size
     --epochs=$epochs --lr_scheduler='reduce' --es_patience=5" -o $log_output
   done
 done
