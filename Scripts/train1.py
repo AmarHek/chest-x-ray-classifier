@@ -39,7 +39,7 @@ if __name__ == '__main__':
                      "Pleural Other", "Fracture", "Support Devices"]
     }
 
-    print(args.model_path)
+    print(args)
     assert args.model_path is not None, "Specify model path!"
     assert args.classes in classes_dict.keys(), "Invalid class config!"
 

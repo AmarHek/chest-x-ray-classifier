@@ -185,9 +185,9 @@ class Trainer:
                     self.writer.add_scalar('Loss/train', training_loss/(batch+1), (epoch+1)*(batch+1))
 
         # clear memory
-        # del images, labels, loss
-        # if torch.cuda.is_available():
-        #     torch.cuda.empty_cache()
+        del images, labels, loss
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
         # return average loss of training set
         return training_loss/len(self.train_loader)
@@ -230,9 +230,9 @@ class Trainer:
             self.writer.add_scalar('AUC/val', auc, (epoch+1)*len(self.train_loader))
 
         # Clear memory
-        # del images, labels, loss
-        # if torch.cuda.is_available():
-        #     torch.cuda.empty_cache()
+        del images, labels, loss
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
         # return average loss of val set and average auroc score
         return valid_loss/len(self.valid_loader), auc
