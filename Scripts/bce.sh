@@ -1,10 +1,12 @@
 #!/bin/bash
 # Activate the virtual environment
-source /autofs/ls6/hekalo/Git/chest-x-ray-classifier/venv/bin/activate
+source /home/ls6/hekalo/Git/chest-x-ray-classifier/venv/bin/activate
 
 # add project root to PYTHONPATH
-PYTHONPATH="${PYTHONPATH}:/autofs/ls6/hekalo/Git/chest-x-ray-classifier"
+PYTHONPATH="${PYTHONPATH}:/home/ls6/hekalo/Git/chest-x-ray-classifier"
 export PYTHONPATH
+
+log_output="/home/ls6/hekalo/job_output/bce.out"
 
 # Define model names
 architectures=(
@@ -44,7 +46,7 @@ for architecture in "${architectures[@]}"; do
     sbatch -p ls6 --gres=gpu:rtx2080ti:1 --wrap="python train1.py --architecture=$architecture --classes=$classes
     --model_path=$model_path$classes --csv_path=$csv_path --img_path=$img_path --image_size=$image_size
     --loss=$loss --optimizer=$optimizer --learning_rate=$learning_rate  --batch_size=$batch_size
-    --epochs=$epochs --lr_scheduler='reduce' --es_patience=5" -o output.out
+    --epochs=$epochs --lr_scheduler='reduce' --es_patience=5" -o $log_output
   done
 done
 
