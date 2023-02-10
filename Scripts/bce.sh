@@ -11,10 +11,15 @@ log_output="/home/ls6/hekalo/job_output/bce.out"
 # Define model names
 architectures=(
   "densenet121"
+  "efficientnet_v2_s"
+  "efficientnet_b1"
 )
 
 classes_sets=(
   "pneumonia"
+  "chexternal"
+  "chexternal_pneumo"
+  "chexpert"
 )
 
 model_path="/scratch/hekalo/Models/labels_chexpert/bce/"
@@ -25,7 +30,7 @@ image_size=320
 loss="bce"
 optimizer="adam"
 learning_rate=0.01
-batch_size=16
+batch_size=32
 epochs=100
 
 # Iterate through model names
@@ -33,7 +38,7 @@ for architecture in "${architectures[@]}"; do
   # Iterate through classes
   for classes in "${classes_sets[@]}"; do
     # Submit the script as a SLURM job with the current combination of model_name_or_path and dataset_names_or_paths
-    sbatch -p ls6 --gres=gpu:rtx2080ti:1 --wrap="python train1.py $architecture $classes $model_path$classes $csv_path $img_path --image_size=$image_size --loss=$loss --optimizer=$optimizer --learning_rate=$learning_rate --batch_size=$batch_size --epochs=$epochs --lr_scheduler='reduce' --es_patience=5" -o $log_output
+    sbatch -p ls6 --gres=gpu:rtx3090:1 --wrap="python train1.py $architecture $classes $model_path$classes $csv_path $img_path --image_size=$image_size --loss=$loss --optimizer=$optimizer --learning_rate=$learning_rate --batch_size=$batch_size --epochs=$epochs --lr_scheduler='reduce' --es_patience=5" -o $log_output
   done
 done
 

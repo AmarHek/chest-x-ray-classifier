@@ -161,7 +161,7 @@ class Trainer:
 
         print(f'Training at epoch {epoch}...')
 
-        for batch, (images, labels) in enumerate(tqdm(self.train_loader)):
+        for batch, (images, labels) in enumerate(self.train_loader):
             # move to device
             images = images.to(self.device)
             labels = labels.to(self.device)
