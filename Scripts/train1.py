@@ -9,19 +9,19 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--architecture", help="Input backbone model to train.", type=str)
-    parser.add_argument("--classes", type=str)
+    parser.add_argument("architecture", help="Input backbone model to train.", type=str)
+    parser.add_argument("classes", type=str)
 
-    parser.add_argument("--model_path", type=str)
-    parser.add_argument("--csv_path", type=str, default='/scratch/hekalo/Datasets/CheXpert-v1.0-small/')
-    parser.add_argument("--img_path", type=str, default='/scratch/hekalo/Datasets/')
+    parser.add_argument("model_path", type=str)
+    parser.add_argument("csv_path", type=str)
+    parser.add_argument("img_path", type=str)
     parser.add_argument("--image_size", type=int, default=320)
 
     parser.add_argument("--loss", type=str, default="bce")
     parser.add_argument("--optimizer", type=str, default="adam")
     parser.add_argument("--learning_rate", type=float, default=0.01)
 
-    parser.add_argument("--batch_size", type=int, default=32)
+    parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--epochs", type=int, default=100)
 
     parser.add_argument("--update_steps", type=int, default=1000)
