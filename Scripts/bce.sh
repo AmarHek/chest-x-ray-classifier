@@ -13,6 +13,7 @@ architectures=(
   "densenet121"
   "efficientnet_v2_s"
   "efficientnet_b1"
+  "resnet50"
 )
 
 classes_sets=(
