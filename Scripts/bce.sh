@@ -11,19 +11,10 @@ log_output="/home/ls6/hekalo/job_output/bce.out"
 # Define model names
 architectures=(
   "densenet121"
-  "efficientnet_b1"
-  "efficientnet_v2_s"
-  "efficientnet_v2_m"
-  "resnet50"
-  "resnet101"
-  "inception_v3"
 )
 
 classes_sets=(
   "pneumonia"
-  "chexternal"
-  "chexternal_pneumo"
-  "chexpert"
 )
 
 model_path="/scratch/hekalo/Models/labels_chexpert/bce/"

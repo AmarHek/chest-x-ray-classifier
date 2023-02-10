@@ -14,6 +14,12 @@ architectures=(
   "efficientnet_v2_l"
   "resnext101_32x4d"
   "resnext101_64x4d"
+  "efficientnet_b1"
+  "efficientnet_v2_s"
+  "efficientnet_v2_m"
+  "resnet50"
+  "resnet101"
+  "inception_v3"
 )
 
 classes_sets=(
