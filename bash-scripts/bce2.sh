@@ -1,19 +1,25 @@
 #!/bin/bash
 # Activate the virtual environment
-source /home/ls6/hekalo/Git/chest-x-ray-classifier/venv/bin/activate
+source /autofs/ls6/hekalo/Git/chest-x-ray-classifier/venv/bin/activate
 
 # add project root to PYTHONPATH
-PYTHONPATH="${PYTHONPATH}:/home/ls6/hekalo/Git/chest-x-ray-classifier"
+PYTHONPATH="${PYTHONPATH}:/autofs/ls6/hekalo/Git/chest-x-ray-classifier"
 export PYTHONPATH
 
-log_output="/home/ls6/hekalo/job_output/slurm-%j.out"
+log_output="/home/ls6/hekalo/job_output/slurm-%A_%a.out"
 
 # Define model names
 architectures=(
-  "densenet121"
-  "efficientnet_v2_s"
-  "efficientnet_b1"
+  "efficientnet_b2"
+  "resnet152"
+  "densenet161"
+  "efficientnet_v2_l"
+  "resnext101_32x4d"
+  "resnext101_64x4d"
+  "efficientnet_v2_m"
   "resnet50"
+  "resnet101"
+  "inception_v3"
 )
 
 classes_sets=(
@@ -39,9 +45,10 @@ for architecture in "${architectures[@]}"; do
   # Iterate through classes
   for classes in "${classes_sets[@]}"; do
     # Submit the script as a SLURM job with the current combination of model_name_or_path and dataset_names_or_paths
-    sbatch -p ls6 --gres=gpu:rtx3090:1 --wrap="python train1.py $architecture $classes $model_path$classes $csv_path $img_path --image_size=$image_size --loss=$loss --optimizer=$optimizer --learning_rate=$learning_rate --batch_size=$batch_size --epochs=$epochs --lr_scheduler='plateau' --es_patience=5" -o $log_output
+    sbatch -p ls6 --gres=gpu:rtx3090:1 --wrap="python ../Scripts/train1.py $architecture $classes $model_path$classes $csv_path $img_path --image_size=$image_size --loss=$loss --optimizer=$optimizer --learning_rate=$learning_rate --batch_size=$batch_size --epochs=$epochs --lr_scheduler='reduce' --es_patience=5" -o $log_output
   done
 done
 
 # Deactivate the virtual environment
 deactivate
+
