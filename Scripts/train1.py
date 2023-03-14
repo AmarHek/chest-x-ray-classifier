@@ -1,4 +1,4 @@
-from lib.dataset import CheXpert
+from lib.dataset import ChestXray
 from lib.trainer import Trainer
 from lib import models
 
@@ -62,10 +62,10 @@ if __name__ == '__main__':
     es_patience = args.es_patience
     lr_scheduler = args.lr_scheduler
 
-    trainSet = CheXpert(csv_path=csv_path + 'train.csv', image_root_path=img_path, use_upsampling=False,
-                        use_frontal=True, image_size=image_size, mode='train', train_cols=classes)
-    valSet = CheXpert(csv_path=csv_path + 'valid.csv', image_root_path=img_path, use_upsampling=False,
-                      use_frontal=True, image_size=image_size, mode='valid', train_cols=classes)
+    trainSet = ChestXray(csv_path=csv_path + 'train.csv', image_root_path=img_path, use_upsampling=False,
+                         use_frontal=True, image_size=image_size, mode='train', train_cols=classes)
+    valSet = ChestXray(csv_path=csv_path + 'valid.csv', image_root_path=img_path, use_upsampling=False,
+                       use_frontal=True, image_size=image_size, mode='valid', train_cols=classes)
 
     model = models.sequential_model(architecture, trainSet.num_classes)
 
