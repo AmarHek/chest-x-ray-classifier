@@ -50,6 +50,7 @@ def get_pretrained_model(architecture: str, pretrained: bool = True) -> nn.Modul
 
 def get_classifier_function(classifier_function: str):
     classifier_functions = {
+        "none": nn.Identity(),
         "sigmoid": nn.Sigmoid(),
         "softmax": nn.Softmax(),
         "logsoftmax": nn.LogSoftmax(),
