@@ -1,13 +1,15 @@
 import numpy as np
 import torch.cuda
 import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
-import libauc
+from libauc.losses import APLoss, AUCMLoss, CompositionalAUCLoss, pAUCLoss
+from libauc.optimizers import PESG, PDSCA, SOAP, SOPA, SOPAs, SOTAs
 import os
 from tqdm import tqdm
 
+from .dataset import ChestXray
 from .metrics import multi_label_auroc
 
 
@@ -25,19 +27,29 @@ class Trainer:
         "radam": optim.RAdam,
         "rmsprop": optim.RMSprop,
         "rprop": optim.Rprop,
-        "lbfgs": optim.LBFGS
+        "lbfgs": optim.LBFGS,
+        "pesg": PESG,
+        "pdsca": PDSCA,
+        "soap": SOAP,
+        "sopa": SOPA,
+        "sopas": SOPAs,
+        "sotas": SOTAs
     }
 
     losses = {
         "ce": nn.CrossEntropyLoss(),
         "bce": nn.BCELoss(),
-        "hinge": nn.HingeEmbeddingLoss()
+        "hinge": nn.HingeEmbeddingLoss(),
+        "aucm": AUCMLoss(),
+        "compositionalaucloss": CompositionalAUCLoss(),
+        "paucloss": pAUCLoss,
+        "aploss": APLoss
     }
 
     def __init__(self,
                  model: nn.Module,
-                 train_set: Dataset,
-                 valid_set: Dataset,
+                 train_set: ChestXray,
+                 valid_set: ChestXray,
                  loss: str,
                  optimizer: str,
                  learning_rate: float,
@@ -113,12 +125,19 @@ class Trainer:
         loss = loss.lower()
         assert loss in Trainer.losses.keys(), "Invalid loss!"
 
-        self.loss = Trainer.losses[loss]
+        if loss == "aploss":
+            self.loss = Trainer.losses[loss](pos_len=self.train_set.imbalance_ratio * self.train_set.data_size)
+        else:
+            self.loss = Trainer.losses[loss]
 
     def set_optimizer(self, optimizer, learning_rate):
         optimizer = optimizer.lower()
         assert optimizer in Trainer.optimizers.keys(), "Invalid optimizer!"
-        self.optimizer = Trainer.optimizers[optimizer](self.model.parameters(), lr=learning_rate)
+
+        if optimizer == "":
+            pass
+        else:
+            self.optimizer = Trainer.optimizers[optimizer](self.model.parameters(), lr=learning_rate)
 
     def set_lr_scheduler(self, mode: str = "min"):
         assert self.optimizer is not None, "Optimizer Function needs to be set before the scheduler!"
@@ -302,7 +321,8 @@ class Trainer:
 
             # save model on epoch
             if self.save_on_epoch:
-                self.save_model(os.path.join(experiment_path, model_name_base + f"_epoch_{epoch}"), epoch, new_score)
+                self.save_model_progress(os.path.join(experiment_path, model_name_base + f"_epoch_{epoch}.pth"),
+                                         epoch, new_score)
 
             # save best model
             if self.use_auc_on_val:
@@ -312,7 +332,7 @@ class Trainer:
             if condition:
                 print(f'Model improved at epoch {epoch}, saving model.')
                 best_score = new_score
-                self.save_model(os.path.join(experiment_path, model_name_base + "_best"), epoch, best_score)
+                self.save_model_best(os.path.join(experiment_path, model_name_base + "_best.pt"))
 
             # early stopping
             if self.early_stopping:
@@ -320,7 +340,7 @@ class Trainer:
                     print(f"Early stopping at {epoch}")
                     break
 
-    def save_model(self, model_path: str, epoch: int, score: float):
+    def save_model_progress(self, model_path: str, epoch: int, score: float):
         if self.use_auc_on_val:
             score_name = "Val_AUC"
         else:
@@ -330,3 +350,6 @@ class Trainer:
                     "epoch": epoch,
                     "score_name": score_name,
                     "score": score}, model_path)
+
+    def save_model_best(self, model_path: str):
+        torch.save(self.model, model_path)
