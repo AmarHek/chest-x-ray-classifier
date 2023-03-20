@@ -10,12 +10,9 @@ log_output="/home/ls6/hekalo/job_output/slurm-%j.out"
 
 # Define model names
 architectures=(
-  "efficientnet_b2"
-  "resnet152"
-  "densenet161"
-  "efficientnet_v2_l"
-  "efficientnet_v2_m"
-  "resnet101"
+  "resnext50_32x4d"
+  "resnext101_32x8d"
+  "resnext101_64x4d"
 )
 
 classes_sets=(
