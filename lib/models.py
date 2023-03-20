@@ -1,6 +1,7 @@
 import torchvision.models
 import torch.nn as nn
 
+
 def get_pretrained_model(architecture: str, pretrained: bool = True) -> nn.Module:
     architectures = {
         "densenet121": torchvision.models.densenet121,
@@ -15,8 +16,7 @@ def get_pretrained_model(architecture: str, pretrained: bool = True) -> nn.Modul
         "resnet152": torchvision.models.resnet152,
         "resnext50_32x4d": torchvision.models.resnext50_32x4d,
         "resnext101_32x8d": torchvision.models.resnext101_32x8d,
-        "resnext101_64x4d": torchvision.models.resnext101_64x4d,
-        "inception_v3": torchvision.models.inception_v3
+        "resnext101_64x4d": torchvision.models.resnext101_64x4d
     }
 
     weights_dict = {
@@ -32,8 +32,7 @@ def get_pretrained_model(architecture: str, pretrained: bool = True) -> nn.Modul
         "resnet152": torchvision.models.ResNet152_Weights.DEFAULT,
         "resnext50_32x4d": torchvision.models.ResNeXt50_32X4D_Weights.DEFAULT,
         "resnext101_32x8d": torchvision.models.ResNeXt101_32X8D_Weights.DEFAULT,
-        "resnext101_64x4d": torchvision.models.ResNeXt101_64X4D_Weights.DEFAULT,
-        "inception_v3": torchvision.models.Inception_V3_Weights.DEFAULT
+        "resnext101_64x4d": torchvision.models.ResNeXt101_64X4D_Weights.DEFAULT
     }
 
     architecture = architecture.lower()
@@ -81,8 +80,7 @@ def get_classifier(architecture: str, n_classes: int, classifier_function,
         "resnet152": 2048,
         "resnext50_32x4d": 2048,
         "resnext101_32x8d": 2048,
-        "resnext101_64x4d": 2048,
-        "inception_v3": 2048
+        "resnext101_64x4d": 2048
     }
 
     assert architecture in shape_dict.keys(), "Invalid architecture!"
