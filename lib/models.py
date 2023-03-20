@@ -117,7 +117,7 @@ def sequential_model(architecture: str, n_classes: int, pretrained: bool = True,
                                 long_classifier=long_classifier, dropout=dropout)
 
     # replace the pretrained model's classifier with our new one
-    if "resnet" in architecture or "inception" in architecture:
+    if "resnet" in architecture or "resnext" in architecture:
         model.fc = classifier
     else:
         model.classifier = classifier
