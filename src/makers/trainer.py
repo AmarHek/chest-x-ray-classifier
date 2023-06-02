@@ -9,8 +9,8 @@ from libauc.optimizers import PESG, PDSCA, SOAP, SOPA, SOPAs, SOTAs
 import os
 from tqdm import tqdm
 
-from .dataset import ChestXray
-from .metrics import multi_label_auroc
+from src.datasets.chexpert import CheXpert
+from src.metrics.metrics import multi_label_auroc
 
 
 class Trainer:
@@ -48,8 +48,8 @@ class Trainer:
 
     def __init__(self,
                  model: nn.Module,
-                 train_set: ChestXray,
-                 valid_set: ChestXray,
+                 train_set: CheXpert,
+                 valid_set: CheXpert,
                  loss: str,
                  optimizer: str,
                  learning_rate: float,

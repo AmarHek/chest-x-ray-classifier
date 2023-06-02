@@ -1,6 +1,5 @@
-from lib.dataset import ChestXray
-from lib.trainer import Trainer
-from lib import models
+from src.datasets.chexpert import CheXpert
+from src.models import Trainer
 
 if __name__ == '__main__':
 
@@ -12,10 +11,10 @@ if __name__ == '__main__':
 
     classes = ["Pneumonia"]
 
-    trainSet = ChestXray(csv_path=csv_path + 'train.csv', image_root_path=img_path, use_upsampling=False,
-                         use_frontal=True, image_size=320, mode='train', train_cols=classes)
-    valSet = ChestXray(csv_path=csv_path + 'valid.csv', image_root_path=img_path, use_upsampling=False,
-                       use_frontal=True, image_size=320, mode='valid', train_cols=classes)
+    trainSet = CheXpert(csv_path=csv_path + 'train.csv', image_root_path=img_path, use_upsampling=False,
+                        use_frontal=True, image_size=320, mode='train', train_cols=classes)
+    valSet = CheXpert(csv_path=csv_path + 'valid.csv', image_root_path=img_path, use_upsampling=False,
+                      use_frontal=True, image_size=320, mode='valid', train_cols=classes)
 
     model = models.sequential_model("densenet121", trainSet.num_classes)
 

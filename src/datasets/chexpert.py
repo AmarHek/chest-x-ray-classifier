@@ -9,7 +9,7 @@ import pandas as pd
 import os
 
 
-class ChestXray(Dataset):
+class CheXpert(Dataset):
 
     def __init__(self,
                  csv_path: str,
@@ -96,7 +96,7 @@ class ChestXray(Dataset):
         if use_lsr_random:
             np.random.seed(seed)
             for col in train_cols:
-                self.df[col] = self.df[col].apply(ChestXray.label_smoothing_regularization)
+                self.df[col] = self.df[col].apply(CheXpert.label_smoothing_regularization)
 
         # shuffle data
         if shuffle:
@@ -186,7 +186,7 @@ class ChestXray(Dataset):
         image = Image.fromarray(image)
 
         if self.mode == 'train':
-            image = ChestXray.image_augmentation(image)
+            image = CheXpert.image_augmentation(image)
         image = np.array(image)
         image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
 
@@ -204,10 +204,10 @@ class ChestXray(Dataset):
 if __name__ == '__main__':
     csv_path = '\\\\hastur\\scratch\\hekalo\\Datasets\\CheXpert-v1.0-small\\'
     img_path = '\\\\hastur\\scratch\\hekalo\\Datasets\\'
-    trainSet = ChestXray(csv_path=csv_path + 'train.csv', image_root_path=img_path, use_upsampling=False, use_frontal=True,
-                         image_size=320, mode='train', train_cols=["Pneumonia"])
-    testSet = ChestXray(csv_path=csv_path + 'valid.csv', image_root_path=img_path, use_upsampling=False, use_frontal=True,
-                        image_size=320, mode='valid', train_cols=["Pneumonia"])
+    trainSet = CheXpert(csv_path=csv_path + 'train.csv', image_root_path=img_path, use_upsampling=False, use_frontal=True,
+                        image_size=320, mode='train', train_cols=["Pneumonia"])
+    testSet = CheXpert(csv_path=csv_path + 'valid.csv', image_root_path=img_path, use_upsampling=False, use_frontal=True,
+                       image_size=320, mode='valid', train_cols=["Pneumonia"])
 
     trainLoader = torch.utils.data.DataLoader(trainSet, batch_size=32, num_workers=2, drop_last=True, shuffle=True)
     testLoader = torch.utils.data.DataLoader(testSet, batch_size=32, num_workers=2, drop_last=False, shuffle=False)

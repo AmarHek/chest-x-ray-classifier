@@ -2,19 +2,15 @@ import os.path
 
 import torch.nn as nn
 import torch.cuda
-from torch.utils.data import DataLoader
-import libauc
-from tqdm import tqdm
 
-from lib.dataset import ChestXray
-from lib.metrics import multi_label_auroc
+from src.datasets.chexpert import CheXpert
 
 
 class Tester:
 
     def __init__(self,
                  model_path: str or list[str],
-                 test_set: ChestXray,
+                 test_set: CheXpert,
                  metrics: list[str],
                  threshold: float = 0.5):
 

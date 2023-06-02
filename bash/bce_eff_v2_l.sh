@@ -28,7 +28,7 @@ image_size=320
 loss="bce"
 optimizer="adam"
 learning_rate=0.01
-batch_size=32
+batch_size=16
 epochs=100
 
 # Iterate through model names
