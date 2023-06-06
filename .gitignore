@@ -9,3 +9,7 @@
 
 # venv
 /venv
+
+# setup
+/build
+/dist
