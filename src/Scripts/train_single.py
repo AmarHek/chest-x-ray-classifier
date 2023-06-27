@@ -1,5 +1,5 @@
 from src.datasets.chexpert import CheXpert
-from src.models import Trainer
+from src.makers.trainer import Trainer
 
 import argparse
 
