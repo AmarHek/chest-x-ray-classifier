@@ -3,10 +3,10 @@ from src.makers.tester import Tester
 
 if __name__ == "__main__":
 
-    model_file = "C:/Users/Amar/Documents/models.txt"
+    model_file = "/home/ls6/hekalo/models.txt"
 
-    csv_path = "//hastur/scratch/hekalo/Datasets/CheXpert-v1.0-small/"
-    img_path = "//hastur/scratch/hekalo/Datasets/"
+    csv_path = "/scratch/hekalo/Datasets/CheXpert-v1.0-small/"
+    img_path = "/scratch/hekalo/Datasets/"
     image_size = 320
 
     labels = ["Enlarged Cardiomediastinum", "Cardiomegaly", "Lung Opacity", "Lung Lesion", "Edema",
@@ -19,5 +19,5 @@ if __name__ == "__main__":
     tester = Tester(test_set=testSet, classes=labels, models_file=model_file, batch_size=1)
 
     tester.test()
-    tester.save_metrics("C:/Users/Amar/Documents/metrics.json")
-    tester.save_raw_results("C:/Users/Amar/Documents/output.json")
+    tester.save_metrics("/home/ls6/hekalo/metrics.json")
+    tester.save_raw_results("/home/ls6/hekalo/output.json")
