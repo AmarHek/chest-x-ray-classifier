@@ -2,15 +2,14 @@ import numpy as np
 import torch.cuda
 import torch.nn as nn
 from torch.utils.data import DataLoader
-import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
-from libauc.losses import APLoss, AUCMLoss, CompositionalAUCLoss, pAUCLoss
-from libauc.optimizers import PESG, PDSCA, SOAP, SOPA, SOPAs, SOTAs
+
+
 import os
 from tqdm import tqdm
 
 from src.datasets.chexpert import CheXpert
-from src.metrics.metrics import multi_label_auroc
+from src.functions import multi_label_auroc, losses, optimizers
 
 
 class Trainer:
@@ -126,21 +125,21 @@ class Trainer:
 
     def set_loss(self, loss):
         loss = loss.lower()
-        assert loss in Trainer.losses.keys(), "Invalid loss!"
+        assert loss in losses.keys(), "Invalid loss!"
 
         if loss == "aploss":
-            self.loss = Trainer.losses[loss](pos_len=self.train_set.imbalance_ratio * self.train_set.data_size)
+            self.loss = losses[loss](pos_len=self.train_set.imbalance_ratio * self.train_set.data_size)
         else:
-            self.loss = Trainer.losses[loss]
+            self.loss = losses[loss]
 
     def set_optimizer(self, optimizer, learning_rate):
         optimizer = optimizer.lower()
-        assert optimizer in Trainer.optimizers.keys(), "Invalid optimizer!"
+        assert optimizer in optimizers.keys(), "Invalid optimizer!"
 
         if optimizer == "":
             pass
         else:
-            self.optimizer = Trainer.optimizers[optimizer](self.model.parameters(), lr=learning_rate)
+            self.optimizer = optimizers[optimizer](self.model.parameters(), lr=learning_rate)
 
     def set_lr_scheduler(self, mode: str = "min"):
         assert self.optimizer is not None, "Optimizer Function needs to be set before the scheduler!"
@@ -305,10 +304,10 @@ class Trainer:
             self.current_epoch = epoch
 
             # Training
-            self.train_epoch(epoch)
+            self.train_epoch()
 
             # Validation
-            val_loss, val_auc = self.validate(epoch)
+            val_loss, val_auc = self.validate()
 
             if self.use_auc_on_val:
                 self.current_score = val_auc
