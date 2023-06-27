@@ -1,5 +1,6 @@
 from src.datasets.chexpert import CheXpert
 from src.makers.trainer import Trainer
+from src.models import cnn_models as models
 
 import argparse
 
