@@ -25,8 +25,8 @@ class CheXpert(Dataset):
                  seed: int = 42069,
                  verbose: bool = True,
                  assert_images: bool = False,
-                 upsampling_cols: list[str] = ['Cardiomegaly', 'Consolidation'],
-                 train_cols: list[str] = ['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion'],
+                 upsampling_cols: list[str] = None,
+                 train_cols: list[str] = None,
                  mode: str = 'train'):
 
         # Assertions
@@ -35,6 +35,11 @@ class CheXpert(Dataset):
         assert not (use_pa is True and use_ap is True), 'Cannot filter out both ap and pa!'
         if use_lsr_random is True and use_lsr_dam is True:
             print('Warning: Both LSR methods set to True. Only lsr_dam will be used.')
+
+        if upsampling_cols is None:
+            upsampling_cols = ['Cardiomegaly', 'Consolidation']
+        if train_cols is None:
+            train_cols = ['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion']
 
         self.mode = mode
         self.image_size = image_size
