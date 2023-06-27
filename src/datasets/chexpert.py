@@ -56,7 +56,10 @@ class CheXpert(Dataset):
         # load data from csv
         self.df = pd.read_csv(csv_path)
 
-        cheXpert_classes = self.df.columns[5:]
+        if mode == "test":
+            cheXpert_classes = self.df_columns[1:]
+        else:
+            cheXpert_classes = self.df.columns[5:]
         assert all(col in cheXpert_classes for col in train_cols), \
             'One or more classes in train_cols are incorrect!'
         if use_upsampling:
