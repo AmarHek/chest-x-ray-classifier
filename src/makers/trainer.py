@@ -291,8 +291,7 @@ class Trainer:
 
             # save model on epoch
             if self.save_on_epoch:
-                self.save_model_progress(os.path.join(experiment_path, model_name_base + f"_epoch_{epoch}.pth"),
-                                         epoch, new_score)
+                self.save_model_dict(os.path.join(experiment_path, model_name_base + f"_epoch_{epoch}.pth"))
 
             # save best model
             if self.use_auc_on_val:
