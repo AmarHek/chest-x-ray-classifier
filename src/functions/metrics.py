@@ -1,4 +1,4 @@
-from sklearn.metrics import roc_auc_score, precision_score, recall_score
+from sklearn.metrics import roc_auc_score, precision_score, recall_score, f1_score
 
 
 def multi_label_auroc(y_gt, y_pred, average=None):
@@ -52,15 +52,34 @@ def recall(y_gt, y_pred, threshold=0.5, average=None):
         return recall_score(gt_np, pred_np, average=average)
 
 
-metrics = {
+def f1(y_gt, y_pred, threshold=0.5, average=None):
+    fone = []
+    gt_np = y_gt.to("cpu").numpy()
+    pred_np = y_pred.to("cpu").numpy()
+
+    assert gt_np.shape == pred_np.shape, "y_gt and y_pred should have the same size"
+
+    # map probabilities to hard labels
+    pred_np = (pred_np > threshold).astype(int)
+
+    if average is None:
+        for i in range(gt_np.shape[1]):
+            fone.append(f1_score(gt_np[:, i], pred_np[:, i], average="binary"))
+        return f1
+    else:
+        return f1_score(gt_np, pred_np, average=average)
+
+
+metrics_selector = {
     "auroc": multi_label_auroc,
     "precision": precision,
-    "recall": recall
+    "recall": recall,
+    "f1": f1
 }
 
 
 def metric_is_valid(metric: str):
-    if metric in metrics_dict.keys():
+    if metric in metrics_selector.keys():
         return True
     else:
         print("WARNING: Metric %s not in list of metrics, skipping." % metric)

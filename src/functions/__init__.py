@@ -1,3 +1,3 @@
-from .loss import losses
-from .optimizer import optimizers
-from .metric import *
+from .losses import losses
+from .optimizers import optimizers
+from .metrics import *
