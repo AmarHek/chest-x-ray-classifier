@@ -1,7 +1,6 @@
 import os.path
 import json
 
-import torch.nn as nn
 import torch.cuda
 from torch.utils.data import Dataset, DataLoader
 

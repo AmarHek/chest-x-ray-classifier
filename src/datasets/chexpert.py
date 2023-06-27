@@ -57,7 +57,7 @@ class CheXpert(Dataset):
         self.df = pd.read_csv(csv_path)
 
         if mode == "test":
-            cheXpert_classes = self.df_columns[1:]
+            cheXpert_classes = self.df.columns[1:]
         else:
             cheXpert_classes = self.df.columns[5:]
         assert all(col in cheXpert_classes for col in train_cols), \
