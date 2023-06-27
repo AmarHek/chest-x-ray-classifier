@@ -342,16 +342,35 @@ class Trainer:
                     print(f"Early stopping at {epoch}")
                     break
 
-    def save_model_progress(self, model_path: str, epoch: int, score: float):
+    def save_model_dict(self, model_path: str):
+        # TODO: Save model parameters as well?
         if self.use_auc_on_val:
             score_name = "Val_AUC"
         else:
             score_name = "Val_Loss"
         torch.save({"model": self.model.state_dict(),
                     "optimizer": self.optimizer.state_dict(),
-                    "epoch": epoch,
+                    "epoch": self.current_epoch,
                     "score_name": score_name,
-                    "score": score}, model_path)
+                    "score": self.current_score,
+                    "best_score": self.best_score}, model_path)
 
-    def save_model_best(self, model_path: str):
+    def save_model_full(self, model_path: str):
         torch.save(self.model, model_path)
+
+    def load_model_dict(self, load_path: str):
+        load_dict = torch.load(load_path)
+        # TODO: Add option to generate model from model library?
+        self.model.load_state_dict(load_dict["model"])
+        self.optimizer.load_state_dict(load_dict["optimizer"])
+        self.current_epoch = load_dict["epoch"]
+        self.best_score = load_dict["best_score"]
+        self.current_score = load_dict["score"]
+
+        score_name = load_dict["score_name"]
+        if score_name == "Val_AUC":
+            self.use_auc_on_val = True
+        elif score_name == "Val_Loss":
+            self.use_auc_on_val = False
+        else:
+            raise ValueError("Invalid score name!")
