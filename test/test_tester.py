@@ -14,7 +14,7 @@ if __name__ == "__main__":
               "Pleural Other", "Fracture", "Support Devices"]
 
     testSet = CheXpert(csv_path=csv_path + 'test.csv', image_root_path=img_path, use_upsampling=False,
-                       use_frontal=True, image_size=image_size, mode='test', train_cols=labels)
+                       image_size=image_size, mode='test', train_cols=labels)
 
     tester = Tester(test_set=testSet, classes=labels, models_file=model_file, batch_size=1)
 

@@ -68,50 +68,52 @@ class CheXpert(Dataset):
             assert all(col in upsampling_cols for col in train_cols), \
                 'Discrepancy between upsampling_cols and train_cols!'
 
-        # filter dataframe
-        # only use frontal scans
-        if use_frontal:
-            self.df = self.df[self.df['Frontal/Lateral'] == 'Frontal']
-        # only use PA scans
-        if use_pa:
-            self.df = self.df[self.df['AP/PA'] == 'PA']
-        # only use AP scans
-        if use_ap:
-            self.df = self.df[self.df['AP/PA'] == 'AP']
+        # filter dataframe (only for training and validation)
+        if mode != "test":
+            # only use frontal scans
+            if use_frontal:
+                self.df = self.df[self.df['Frontal/Lateral'] == 'Frontal']
+            # only use PA scans
+            if use_pa:
+                self.df = self.df[self.df['AP/PA'] == 'PA']
+            # only use AP scans
+            if use_ap:
+                self.df = self.df[self.df['AP/PA'] == 'AP']
 
         self._num_images = len(self.df)
 
-        # upsample selected cols
-        if use_upsampling:
-            assert isinstance(upsampling_cols, list), 'Input should be list!'
-            sampled_df_list = []
-            for col in upsampling_cols:
-                print('Upsampling %s...' % col)
-                sampled_df_list.append(self.df[self.df[col] == 1])
-            self.df = pd.concat([self.df] + sampled_df_list, axis=0)
+        if mode != "test":
+            # upsample selected cols
+            if use_upsampling:
+                assert isinstance(upsampling_cols, list), 'Input should be list!'
+                sampled_df_list = []
+                for col in upsampling_cols:
+                    print('Upsampling %s...' % col)
+                    sampled_df_list.append(self.df[self.df[col] == 1])
+                self.df = pd.concat([self.df] + sampled_df_list, axis=0)
 
-        # this is for label smooth regularization based on Deep AUC paper
-        if use_lsr_dam:
-            for col in train_cols:
-                if col in ['Edema', 'Atelectasis']:
-                    self.df[col].replace(-1, 1, inplace=True)
-                elif col in ['Cardiomegaly', 'Consolidation', 'Pleural Effusion']:
-                    self.df[col].replace(-1, 0, inplace=True)
-                else:
-                    self.df[col].replace(-1, 1, inplace=True)
+            # this is for label smooth regularization based on Deep AUC paper
+            if use_lsr_dam:
+                for col in train_cols:
+                    if col in ['Edema', 'Atelectasis']:
+                        self.df[col].replace(-1, 1, inplace=True)
+                    elif col in ['Cardiomegaly', 'Consolidation', 'Pleural Effusion']:
+                        self.df[col].replace(-1, 0, inplace=True)
+                    else:
+                        self.df[col].replace(-1, 1, inplace=True)
 
-        # this is for label smooth regularization based on Pham et al.
-        if use_lsr_random:
-            np.random.seed(seed)
-            for col in train_cols:
-                self.df[col] = self.df[col].apply(CheXpert.label_smoothing_regularization)
+            # this is for label smooth regularization based on Pham et al.
+            if use_lsr_random:
+                np.random.seed(seed)
+                for col in train_cols:
+                    self.df[col] = self.df[col].apply(CheXpert.label_smoothing_regularization)
 
-        # shuffle data
-        if shuffle:
-            data_index = list(range(self._num_images))
-            np.random.seed(seed)
-            np.random.shuffle(data_index)
-            self.df = self.df.iloc[data_index]
+            # shuffle data
+            if shuffle:
+                data_index = list(range(self._num_images))
+                np.random.seed(seed)
+                np.random.shuffle(data_index)
+                self.df = self.df.iloc[data_index]
 
         for class_key, select_col in enumerate(train_cols):
             class_value_counts_dict = self.df[select_col].value_counts().to_dict()
