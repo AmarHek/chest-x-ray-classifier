@@ -86,6 +86,7 @@ class Trainer:
         self.update_steps = update_steps
         self.learning_rate = learning_rate
         self.epochs = epochs
+        self.current_epoch = 0
         self.set_device()
         self.set_loss(loss)
         self.set_optimizer(optimizer, learning_rate)
@@ -100,6 +101,8 @@ class Trainer:
         self.early_stopping = early_stopping
         self.early_stopping_patience = early_stopping_patience
         self.early_stopping_tracker = 0
+        self.best_score = 0
+        self.current_score = 0
 
         # learning rate schedules
         self.lr_scheduler = lr_scheduler
@@ -171,14 +174,14 @@ class Trainer:
 
         return self.early_stopping_tracker > self.early_stopping_patience
 
-    def train_epoch(self, epoch) -> float:
+    def train_epoch(self) -> float:
         # training for a single epoch
 
         # switch model to training mode
         self.model.train()
         training_loss = 0
 
-        print(f'Training at epoch {epoch}...')
+        print(f'Training at epoch {self.current_epoch}...')
 
         for batch, (images, labels) in enumerate(self.train_loader):
             # move to device
@@ -199,9 +202,9 @@ class Trainer:
             # Update training loss after each batch
             training_loss += loss.item()
             if (batch + 1) % self.update_steps == 0:
-                print(f'[{epoch + 1}, {batch + 1:5d}] loss: {training_loss / (batch+1):.3f}')
+                print(f'[{self.current_epoch + 1}, {batch + 1:5d}] loss: {training_loss / (batch+1):.3f}')
                 if self.write_summary and self.writer is not None:
-                    self.writer.add_scalar('Loss/train', training_loss/(batch+1), (epoch+1)*(batch+1))
+                    self.writer.add_scalar('Loss/train', training_loss/(batch+1), (self.current_epoch+1)*(batch+1))
 
         # clear memory
         del images, labels, loss
@@ -211,9 +214,9 @@ class Trainer:
         # return average loss of training set
         return training_loss/len(self.train_loader)
 
-    def validate(self, epoch) -> (float, float):
+    def validate(self) -> (float, float):
 
-        print(f'Validating at epoch {epoch}...')
+        print(f'Validating at epoch {self.current_epoch}...')
 
         # Put model in eval mode
         self.model.eval()
@@ -241,12 +244,13 @@ class Trainer:
                 # update validation loss after each batch
                 valid_loss += loss.item()
         auc = multi_label_auroc(ground_truth, predictions, average='micro')
-        print(f'Validation loss at epoch {epoch+1}: {valid_loss/len(self.valid_loader)}')
-        print(f'Micro-averaged AUC at epoch {epoch+1}: {auc}')
+        print(f'Validation loss at epoch {self.current_epoch+1}: {valid_loss/len(self.valid_loader)}')
+        print(f'Micro-averaged AUC at epoch {self.current_epoch+1}: {auc}')
 
         if self.write_summary and self.writer is not None:
-            self.writer.add_scalar('Loss/val', valid_loss/len(self.valid_loader), (epoch+1)*len(self.train_loader))
-            self.writer.add_scalar('AUC/val', auc, (epoch+1)*len(self.train_loader))
+            self.writer.add_scalar('Loss/val', valid_loss/len(self.valid_loader),
+                                   (self.current_epoch+1)*len(self.train_loader))
+            self.writer.add_scalar('AUC/val', auc, (self.current_epoch+1)*len(self.train_loader))
 
         # Clear memory
         del images, labels, loss
@@ -275,11 +279,13 @@ class Trainer:
         if self.use_auc_on_val:
             print("AUC picked as val improvement score.")
             mode = "max"
-            best_score = 0
+            self.best_score = 0
+            self.current_score = 0
         else:
             print("Loss picked as val improvement score.")
             mode = "min"
-            best_score = np.infty
+            self.best_score = np.infty
+            self.current_score = np.infty
 
         if self.lr_scheduler is not None:
             print(f"Setting up scheduler {self.lr_scheduler}")
@@ -296,6 +302,8 @@ class Trainer:
 
         for epoch in tqdm(range(self.epochs)):
 
+            self.current_epoch = epoch
+
             # Training
             self.train_epoch(epoch)
 
@@ -303,19 +311,13 @@ class Trainer:
             val_loss, val_auc = self.validate(epoch)
 
             if self.use_auc_on_val:
-                new_score = val_auc
+                self.current_score = val_auc
             else:
-                new_score = val_loss
-
-            # # write summary
-            # if self.write_summary and self.writer is not None:
-            #     self.writer.add_scalar('Loss/train', train_loss, epoch+1)
-            #     self.writer.add_scalar('Loss/val', val_loss, epoch+1)
-            #     self.writer.add_scalar('AUC/val', val_auc, epoch+1)
+                self.current_score = val_loss
 
             # update learning rate
             if self.lr_scheduler == "plateau":
-                self.scheduler.step(new_score)
+                self.scheduler.step(self.current_score)
             elif self.scheduler is not None:
                 self.scheduler.step()
 
@@ -326,13 +328,14 @@ class Trainer:
 
             # save best model
             if self.use_auc_on_val:
-                condition = (best_score < new_score)
+                condition = (self.best_score < self.current_score)
             else:
-                condition = (best_score > new_score)
+                condition = (self.best_score > self.current_score)
             if condition:
                 print(f'Model improved at epoch {epoch}, saving model.')
-                best_score = new_score
-                self.save_model_best(os.path.join(experiment_path, model_name_base + "_best.pt"))
+                self.best_score = self.current_score
+                self.save_model_dict(os.path.join(experiment_path, model_name_base + "_best.pth"))
+                self.save_model_full(os.path.join(experiment_path, model_name_base + "_best.pt"))
 
             # early stopping
             if self.early_stopping:
