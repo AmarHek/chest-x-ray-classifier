@@ -132,11 +132,17 @@ class Tester:
         for metric in self.metrics:
             metric_function = metrics_dict[metric]
             if metric == "auroc":
-                result[metric + "_per_class"] = metric_function(y_gt, y_pred)
+                results_per_class = metric_function(y_gt, y_pred)
                 result["avg_" + metric] = metric_function(y_gt, y_pred, average="macro")
             else:
-                result[metric + "_per_class"] = metric_function(y_gt, y_pred, threshold=self.threshold)
+                results_per_class = metric_function(y_gt, y_pred, threshold=self.threshold)
                 result["avg_" + metric] = metric_function(y_gt, y_pred, threshold=self.threshold, average="macro")
+
+            class_results = {}
+            for (class_name, res) in (self.classes, results_per_class):
+                class_results[class_name] = res
+            result[metric + "_per_class"] = class_results
+
         return result
 
     def save_metrics(self, save_path):
