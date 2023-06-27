@@ -54,7 +54,7 @@ class Tester:
         if models_file is not None:
             self.add_models_from_csv(models_file)
 
-        self.init_output_dicts()
+        self.set_device()
 
     def set_device(self):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -76,15 +76,6 @@ class Tester:
         model_paths = get_file_contents_as_list(models_file_path)
         for model_path in model_paths:
             self.add_model(model_path)
-
-    def init_output_dicts(self):
-        for model_name in self.model_names:
-            self.outputs[model_name] = []
-            metrics_output = {}
-            for metric in self.metrics:
-                metrics_output[metric + "_per_class"] = []
-                metrics_output["avg_" + metric] = 0
-            self.metrics_result[model_name] = metrics_output
 
     def test_single_model(self, idx):
         # get paths, names and load the model into memory
