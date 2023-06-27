@@ -14,37 +14,6 @@ from src.functions import multi_label_auroc, losses, optimizers
 
 class Trainer:
 
-    optimizers = {
-        "adadelta": optim.Adadelta,
-        "adagrad": optim.Adagrad,
-        "adam": optim.Adam,
-        "adamw": optim.AdamW,
-        "adamax": optim.Adamax,
-        "sgd": optim.SGD,
-        "asgd": optim.ASGD,
-        "nadam": optim.NAdam,
-        "radam": optim.RAdam,
-        "rmsprop": optim.RMSprop,
-        "rprop": optim.Rprop,
-        "lbfgs": optim.LBFGS,
-        "pesg": PESG,
-        "pdsca": PDSCA,
-        "soap": SOAP,
-        "sopa": SOPA,
-        "sopas": SOPAs,
-        "sotas": SOTAs
-    }
-
-    losses = {
-        "ce": nn.CrossEntropyLoss(),
-        "bce": nn.BCELoss(),
-        "hinge": nn.HingeEmbeddingLoss(),
-        "aucm": AUCMLoss(),
-        "compositionalaucloss": CompositionalAUCLoss(),
-        "paucloss": pAUCLoss,
-        "aploss": APLoss
-    }
-
     def __init__(self,
                  model: nn.Module,
                  train_set: CheXpert,
