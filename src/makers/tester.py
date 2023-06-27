@@ -14,7 +14,7 @@ class Tester:
                  classes: list[str],
                  model_path: str = None,
                  models_file: str = None,
-                 metrics: str | list[str] = "auroc",
+                 metrics="auroc",
                  threshold: float = 0.5):
 
         if model_path is None and models_file is None:
