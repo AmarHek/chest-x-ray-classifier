@@ -15,16 +15,18 @@ class Tester:
                  classes: list[str],
                  model_path: str = None,
                  models_file: str = None,
-                 metrics = None,
+                 metrics=None,
                  threshold: float = 0.5,
+                 batch_size: int = 10,
                  ensemble: bool = False):
 
         if model_path is None and models_file is None:
             raise ValueError("model_path and models_file cannot both be None, "
                              "specify at least one!")
 
+        # TODO: just use DataLoader instead of Dataset class?
         self.test_set = test_set
-        self.test_loader = DataLoader(self.test_set, batch_size=10, num_workers=1,
+        self.test_loader = DataLoader(self.test_set, batch_size=batch_size, num_workers=1,
                                       shuffle=False, drop_last=False)
         # TODO: implement test time augmentation
 
