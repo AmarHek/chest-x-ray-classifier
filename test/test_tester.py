@@ -7,7 +7,7 @@ if __name__ == "__main__":
 
     csv_path = "/scratch/hekalo/Datasets/CheXpert-v1.0-small/"
     img_path = "/scratch/hekalo/Datasets/"
-    image_size = 320
+    image_size = 50
 
     labels = ["Enlarged Cardiomediastinum", "Cardiomegaly", "Lung Opacity", "Lung Lesion", "Edema",
               "Consolidation", "Pneumonia", "Atelectasis", "Pneumothorax", "Pleural Effusion",
