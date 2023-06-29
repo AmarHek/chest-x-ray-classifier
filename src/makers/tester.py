@@ -87,8 +87,8 @@ class Tester:
         model.eval()
 
         # tensors to collect predictions and ground truths
-        predictions = torch.FloatTensor().to(self.device)
-        ground_truth = torch.FloatTensor().to(self.device)
+        predictions = torch.FloatTensor(requires_grad=False).to('cpu')
+        ground_truth = torch.FloatTensor(requires_grad=False).to('cpu')
 
         # first iterate through dataloader and collect all outputs
         for (images, labels) in self.test_loader:
@@ -103,7 +103,7 @@ class Tester:
             predictions = torch.cat((predictions, output), 0)
 
         # save raw outputs to dict
-        self.outputs[model_name] = predictions.to("cpu").numpy()
+        self.outputs[model_name] = predictions.numpy()
 
         # compute metrics
         self.metrics_result[model_name] = self.compute_metrics(ground_truth, predictions)
