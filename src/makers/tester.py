@@ -103,7 +103,7 @@ class Tester:
             predictions = torch.cat((predictions, output), 0)
 
         # save raw outputs to dict
-        self.outputs[model_name] = predictions.detach().numpy()
+        # self.outputs[model_name] = predictions.detach().numpy()
 
         # compute metrics
         self.metrics_result[model_name] = self.compute_metrics(ground_truth, predictions)
