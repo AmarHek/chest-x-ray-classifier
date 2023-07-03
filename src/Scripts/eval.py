@@ -27,15 +27,9 @@ if __name__ == "__main__":
     for cls in classes:
         labels = classes_dict[cls]
         model_base_path = os.path.join(base_path, cls)
-        print(model_base_path)
         models = []
-        print("hello")
-        print(os.path.exists(model_base_path))
         for (dirpath, dirnames, filenames) in os.walk(model_base_path):
-            print("hello")
-            print(dirpath, dirnames, filenames)
             for file in filenames:
-                print(file)
                 if file.endswith("_best.pt"):
                     models.append(os.path.join(dirpath, file))
 
