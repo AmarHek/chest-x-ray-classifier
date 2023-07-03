@@ -7,7 +7,7 @@ losses = {
         "bce": nn.BCELoss(),
         "hinge": nn.HingeEmbeddingLoss(),
         "aucm": AUCMLoss(),
-        "compositionalaucloss": CompositionalAUCLoss(),
+        "compositionalaucloss": CompositionalAUCLoss,
         "paucloss": pAUCLoss,
         "aploss": APLoss
     }

@@ -98,6 +98,8 @@ class Trainer:
 
         if loss == "aploss":
             self.loss = losses[loss](pos_len=self.train_set.imbalance_ratio * self.train_set.data_size)
+        elif loss == "compositionalaucloss":
+            self.loss = losses[loss](k=1)  # k is the number of inner updates for optimizing ce loss, TODO
         else:
             self.loss = losses[loss]
 
@@ -105,8 +107,27 @@ class Trainer:
         optimizer = optimizer.lower()
         assert optimizer in optimizers.keys(), "Invalid optimizer!"
 
-        if optimizer == "":
-            pass
+        if optimizer == "pesg":
+            self.optimizer = optimizers[optimizer](self.model.parameters(),
+                                                   loss_fn=self.loss,
+                                                   lr=learning_rate,
+                                                   momentum=0.9,
+                                                   # Values from the paper
+                                                   # TODO perhaps add parameters to adjust these values
+                                                   margin=1.0,
+                                                   epoch_decay=0.003,
+                                                   weight_decay=0.0001)
+        elif optimizer == "pdsca":
+            self.optimizer = optimizers[optimizer](self.model.parameters(),
+                                                   loss_fn=self.loss,
+                                                   lr=learning_rate,
+                                                   # Values from the tutorial
+                                                   # TODO perhaps add parameters to adjust these values
+                                                   beta1=0.9,
+                                                   beta2=0.9,
+                                                   margin=1.0,
+                                                   epoch_decay=0.002,
+                                                   weight_decay=0.0001)
         else:
             self.optimizer = optimizers[optimizer](self.model.parameters(), lr=learning_rate)
 
