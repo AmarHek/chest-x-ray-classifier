@@ -30,6 +30,7 @@ if __name__ == "__main__":
         print(model_base_path)
         models = []
         for (dirpath, dirnames, filenames) in os.walk(model_base_path):
+            print(dirpath, dirnames, filenames)
             for file in filenames:
                 print(file)
                 if file.endswith("_best.pt"):
