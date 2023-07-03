@@ -29,6 +29,7 @@ if __name__ == "__main__":
         model_base_path = os.path.join(base_path, cls)
 
         model_paths = os.walk(model_base_path)
+        print(model_paths)
 
         # testSet = CheXpert(csv_path=csv_path, image_root_path=img_path, use_upsampling=False,
         #                    image_size=image_size, mode='test', train_cols=labels)
