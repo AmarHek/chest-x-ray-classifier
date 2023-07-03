@@ -28,9 +28,13 @@ if __name__ == "__main__":
         labels = classes_dict[cls]
         model_base_path = os.path.join(base_path, cls)
 
-        model_paths = os.walk(model_base_path)
-        for name in model_paths:
-            print(name)
+        models = []
+        for (dirpath, dirnames, filenames) in os.walk(model_base_path):
+            for file in filenames:
+                if file.endswith("_best.pt"):
+                    models.append(os.path.join(dirpath, file))
+
+        print(models)
 
         # testSet = CheXpert(csv_path=csv_path, image_root_path=img_path, use_upsampling=False,
         #                    image_size=image_size, mode='test', train_cols=labels)
