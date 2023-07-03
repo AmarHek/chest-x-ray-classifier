@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     image_size = 320
 
-    base_path = "scratch/hekalo/Models/labels_chexpert/bce/"
+    base_path = "/scratch/hekalo/Models/labels_chexpert/bce/"
 
     classes = ["pneumonia", "chexternal", "chexternal_pneumo", "chexpert"]
 
