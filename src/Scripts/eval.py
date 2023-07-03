@@ -6,7 +6,7 @@ from src.makers.tester import Tester
 if __name__ == "__main__":
 
     model_file = "/home/ls6/hekalo/models.txt"
-    csv_path = "/scratch/hekalo/Datasets/CheXpert-v1.0-small/"
+    csv_path = "/scratch/hekalo/Datasets/CheXpert-v1.0-small/test.csv"
     img_path = "/scratch/hekalo/Datasets/"
 
     image_size = 320
