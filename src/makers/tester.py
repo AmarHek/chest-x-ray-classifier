@@ -5,7 +5,7 @@ import torch.cuda
 from torch.utils.data import Dataset, DataLoader
 
 from src.functions import metrics_selector as metrics_dict, metric_is_valid
-from src.util.util import get_file_contents_as_list
+from src.util.util import get_file_contents_as_list, serialize_numpy_array
 
 
 class Tester:
@@ -108,7 +108,7 @@ class Tester:
                     torch.cuda.empty_cache()
 
         # save raw outputs to dict
-        # self.outputs[model_name] = predictions.detach().numpy()
+        self.outputs[model_name] = serialize_numpy_array(predictions.numpy())
 
         # compute metrics
         self.metrics_result[model_name] = self.compute_metrics(ground_truth, predictions)
