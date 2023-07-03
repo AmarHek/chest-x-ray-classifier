@@ -30,6 +30,7 @@ if __name__ == "__main__":
         print(model_base_path)
         models = []
         print("hello")
+        print(os.path.exists(model_base_path))
         for (dirpath, dirnames, filenames) in os.walk(model_base_path):
             print("hello")
             print(dirpath, dirnames, filenames)
