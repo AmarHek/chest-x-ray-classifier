@@ -87,20 +87,25 @@ class Tester:
         model.eval()
 
         # tensors to collect predictions and ground truths
-        predictions = torch.FloatTensor(requires_grad=False).to('cpu')
-        ground_truth = torch.FloatTensor(requires_grad=False).to('cpu')
+        predictions = torch.FloatTensor().to('cpu')
+        ground_truth = torch.FloatTensor().to('cpu')
 
-        # first iterate through dataloader and collect all outputs
-        for (images, labels) in self.test_loader:
-            # move image to device
-            images = images.to(self.device)
-            labels = labels.to(self.device)
+        with torch.no_grad():
+            # first iterate through dataloader and collect all outputs
+            for (images, labels) in self.test_loader:
+                # move image to device
+                images = images.to(self.device)
+                labels = labels.to(self.device)
 
-            output = model(images)
+                output = model(images)
 
-            # update containers
-            ground_truth = torch.cat((ground_truth, labels), 0)
-            predictions = torch.cat((predictions, output), 0)
+                # update containers
+                ground_truth = torch.cat((ground_truth, labels.to('cpu')), 0)
+                predictions = torch.cat((predictions, output.to('cpu')), 0)
+
+                del images, labels
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
 
         # save raw outputs to dict
         # self.outputs[model_name] = predictions.detach().numpy()
@@ -109,7 +114,7 @@ class Tester:
         self.metrics_result[model_name] = self.compute_metrics(ground_truth, predictions)
 
         # Clear memory
-        del images, labels, model
+        del model
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
