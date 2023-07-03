@@ -136,7 +136,7 @@ class Tester:
                 result["avg_" + metric] = metric_function(y_gt, y_pred, threshold=self.threshold, average="macro")
 
             class_results = {}
-            for (class_name, res) in (self.classes, results_per_class):
+            for (class_name, res) in zip(self.classes, results_per_class):
                 class_results[class_name] = res
             result[metric + "_per_class"] = class_results
 
