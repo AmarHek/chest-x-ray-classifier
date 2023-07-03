@@ -29,6 +29,7 @@ if __name__ == "__main__":
         model_base_path = os.path.join(base_path, cls)
         print(model_base_path)
         models = []
+        print("hello")
         for (dirpath, dirnames, filenames) in os.walk(model_base_path):
             print("hello")
             print(dirpath, dirnames, filenames)
