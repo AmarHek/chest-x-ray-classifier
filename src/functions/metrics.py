@@ -1,10 +1,21 @@
+from typing import Union
+
+import numpy as np
+import torch
 from sklearn.metrics import roc_auc_score, precision_score, recall_score, f1_score
+
+
+def tensor_to_numpy(tensor: Union[torch.Tensor, np.array]):
+    if type(tensor) == torch.Tensor:
+        return tensor.to("cpu").numpy()
+    else:
+        return tensor
 
 
 def multi_label_auroc(y_gt, y_pred, average=None):
     auroc = []
-    gt_np = y_gt.to("cpu").numpy()
-    pred_np = y_pred.to("cpu").numpy()
+    gt_np = tensor_to_numpy(y_gt)
+    pred_np = tensor_to_numpy(y_pred)
 
     assert gt_np.shape == pred_np.shape, "y_gt and y_pred should have the same size"
 
@@ -18,8 +29,8 @@ def multi_label_auroc(y_gt, y_pred, average=None):
 
 def precision(y_gt, y_pred, threshold=0.5, average=None):
     prec = []
-    gt_np = y_gt.to("cpu").numpy()
-    pred_np = y_pred.to("cpu").numpy()
+    gt_np = tensor_to_numpy(y_gt)
+    pred_np = tensor_to_numpy(y_pred)
 
     assert gt_np.shape == pred_np.shape, "y_gt and y_pred should have the same size"
 
@@ -36,8 +47,8 @@ def precision(y_gt, y_pred, threshold=0.5, average=None):
 
 def recall(y_gt, y_pred, threshold=0.5, average=None):
     rec = []
-    gt_np = y_gt.to("cpu").numpy()
-    pred_np = y_pred.to("cpu").numpy()
+    gt_np = tensor_to_numpy(y_gt)
+    pred_np = tensor_to_numpy(y_pred)
 
     assert gt_np.shape == pred_np.shape, "y_gt and y_pred should have the same size"
 
@@ -65,7 +76,7 @@ def f1(y_gt, y_pred, threshold=0.5, average=None):
     if average is None:
         for i in range(gt_np.shape[1]):
             fone.append(f1_score(gt_np[:, i], pred_np[:, i], average="binary"))
-        return f1
+        return fone
     else:
         return f1_score(gt_np, pred_np, average=average)
 
