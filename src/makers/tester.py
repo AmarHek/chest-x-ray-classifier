@@ -1,5 +1,6 @@
 import os.path
 import json
+from typing import Union
 
 import torch.cuda
 from torch.utils.data import Dataset, DataLoader
@@ -12,18 +13,17 @@ class Tester:
     def __init__(self,
                  test_set: Dataset,
                  classes: list[str],
-                 model_path: str = None,
+                 model_paths: Union[str, list[str]] = None,
                  models_file: str = None,
                  metrics=None,
                  threshold: float = 0.5,
                  batch_size: int = 10,
                  ensemble: bool = False):
 
-        if model_path is None and models_file is None:
+        if model_paths is None and models_file is None:
             raise ValueError("model_path and models_file cannot both be None, "
                              "specify at least one!")
 
-        # TODO: just use DataLoader instead of Dataset class?
         self.test_set = test_set
         self.test_loader = DataLoader(self.test_set, batch_size=batch_size, num_workers=1,
                                       shuffle=False, drop_last=False)
@@ -49,8 +49,12 @@ class Tester:
                     raise ValueError("%s is an invalid metric!" % metric)
             self.metrics = metrics
 
-        if model_path is not None:
-            self.add_model(model_path)
+        if model_paths is not None:
+            if type(model_paths) == str:
+                self.add_model(model_paths)
+            else:
+                for path in model_paths:
+                    self.add_model(path)
         if models_file is not None:
             self.add_models_from_csv(models_file)
 
@@ -64,12 +68,23 @@ class Tester:
     def load_model(model_path: str):
         return torch.load(model_path)
 
+    def reset(self):
+        self.model_paths = []
+        self.model_names = []
+        self.outputs = {}
+        self.metrics_result = {}
+
     def add_model(self, model_path: str):
         assert model_path.endswith('.pt'), "Only .pt allowed for testing!"
         assert os.path.basename(model_path) not in self.model_names, \
             "%s already exists in list of models!" % os.path.basename(model_path)
         self.model_paths.append(model_path)
         self.model_names.append(os.path.basename(model_path))
+
+    def add_models_from_list(self, model_paths: list[str]):
+        assert len(model_paths) > 0, "Specify at least one model!"
+        for model_path in model_paths:
+            self.add_model(model_path)
 
     def add_models_from_csv(self, models_file_path):
         assert os.path.isfile(models_file_path), "Invalid path given!"
