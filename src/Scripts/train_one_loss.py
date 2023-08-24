@@ -1,6 +1,8 @@
 from src.datasets.chexpert import CheXpert
 from src.makers.trainer import Trainer
 from src.models import cnn_models as models
+from src.datasets.labels import labels_dict
+
 
 import argparse
 
@@ -40,20 +42,11 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    classes_dict = {
-        "pneumonia": ["Pneumonia"],
-        "chexternal": ['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion'],
-        "chexternal_pneumo": ['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion', 'Pneumonia'],
-        "chexpert": ["Enlarged Cardiomediastinum", "Cardiomegaly", "Lung Opacity", "Lung Lesion", "Edema",
-                     "Consolidation", "Pneumonia", "Atelectasis", "Pneumothorax", "Pleural Effusion",
-                     "Pleural Other", "Fracture", "Support Devices"]
-    }
-
     print(args)
     assert args.model_path is not None, "Specify model path!"
-    assert args.classes in classes_dict.keys(), "Invalid class config!"
+    assert args.classes in labels_dict.keys(), "Invalid class config!"
 
-    classes = classes_dict[args.classes]
+    classes = labels_dict[args.classes]
 
     trainSet = CheXpert(csv_path=args.csv_path + 'train.csv', image_root_path=args.img_path, use_upsampling=False,
                         use_frontal=True, image_size=args.image_size, mode='train', train_cols=classes)
