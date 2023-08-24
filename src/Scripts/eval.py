@@ -2,6 +2,7 @@ import os
 
 from src.datasets.chexpert import CheXpert
 from src.makers.tester import Tester
+from src.datasets.labels import labels_dict
 
 if __name__ == "__main__":
 
@@ -15,17 +16,8 @@ if __name__ == "__main__":
 
     classes = ["pneumonia", "chexternal", "chexternal_pneumo", "chexpert"]
 
-    classes_dict = {
-        "pneumonia": ["Pneumonia"],
-        "chexternal": ['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion'],
-        "chexternal_pneumo": ['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion', 'Pneumonia'],
-        "chexpert": ["Enlarged Cardiomediastinum", "Cardiomegaly", "Lung Opacity", "Lung Lesion", "Edema",
-                     "Consolidation", "Pneumonia", "Atelectasis", "Pneumothorax", "Pleural Effusion",
-                     "Pleural Other", "Fracture", "Support Devices"]
-    }
-
     for cls in classes:
-        labels = classes_dict[cls]
+        labels = labels_dict[cls]
         model_base_path = os.path.join(base_path, cls)
         models = []
         for (dir_path, dir_names, filenames) in os.walk(model_base_path):
