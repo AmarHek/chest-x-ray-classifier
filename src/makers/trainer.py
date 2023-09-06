@@ -322,7 +322,7 @@ class Trainer:
             if condition:
                 print(f'Model improved at epoch {epoch}, saving model.')
                 self.best_score = self.current_score
-                self.save_model_dict(os.path.join(experiment_path, model_name_base + "_best.pth"))
+                self.save_model_dict(os.path.join(experiment_path, model_name_base + f"_{epoch}_best.pth"))
                 self.save_model_full(os.path.join(experiment_path, model_name_base + "_best.pt"))
 
             # early stopping

@@ -23,7 +23,7 @@ classes_sets=(
   "chexpert"
 )
 
-model_path="/scratch/hekalo/Models/labels_chexpert/bce/"
+model_path="/scratch/hekalo/Experiments/labels_chexpert/bce/"
 
 csv_path="/scratch/hekalo/Datasets/CheXpert-v1.0-small/"
 img_path="/scratch/hekalo/Datasets/"
