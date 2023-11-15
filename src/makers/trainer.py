@@ -1,23 +1,23 @@
 import numpy as np
 import torch.cuda
 import torch.nn as nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 from torch.utils.tensorboard import SummaryWriter
 
 
 import os
 from tqdm import tqdm
 
-from src.datasets.chexpert import CheXpert
-from src.functions import multi_label_auroc, losses, optimizers
+from datasets.chexpert import CheXpert
+from functions import multi_label_auroc, losses, optimizers
 
 
 class Trainer:
 
     def __init__(self,
                  model: nn.Module,
-                 train_set: CheXpert,
-                 valid_set: CheXpert,
+                 train_set: Dataset | CheXpert,
+                 valid_set: Dataset | CheXpert,
                  loss: str,
                  optimizer: str,
                  learning_rate: float,

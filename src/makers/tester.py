@@ -42,12 +42,14 @@ class Tester:
         self.metrics_result: dict = {}
 
         if metrics is None:
-            self.metrics = ["auroc", "precision", "recall", "f1"]
+            self.compute_metrics = False
+            self.metrics = []
         else:
             for metric in metrics:
                 if not metric_is_valid(metric):
                     raise ValueError("%s is an invalid metric!" % metric)
             self.metrics = metrics
+            self.compute_metrics = True
 
         if model_paths is not None:
             if type(model_paths) == str:
