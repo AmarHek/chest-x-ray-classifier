@@ -8,26 +8,15 @@ from PIL import Image
 import pandas as pd
 import os
 
+from params.dataset_params import ChexpertParams, AugmentationParams
+
 
 class CheXpert(Dataset):
 
     def __init__(self,
-                 csv_path: str,
-                 image_root_path: str,
-                 image_size: int = 320,
-                 use_frontal: bool = True,
-                 use_pa: bool = False,
-                 use_ap: bool = False,
-                 use_upsampling: bool = True,
-                 use_lsr_random: bool = True,
-                 use_lsr_dam: bool = False,
-                 shuffle: bool = True,
-                 seed: int = 42069,
-                 verbose: bool = True,
-                 assert_images: bool = False,
-                 upsampling_cols: list[str] = None,
-                 train_cols: list[str] = None,
-                 mode: str = 'train'):
+                 chexpertParams: ChexpertParams,
+                 augmentationParams: AugmentationParams = None,
+                 seed: int = 42069):
 
         # Assertions
         assert os.path.isdir(image_root_path), 'Need a valid path for the images!'
@@ -129,7 +118,7 @@ class CheXpert(Dataset):
 
         self._labels_list = self.df[train_cols].values.tolist()
         self._images_list = [os.path.join(image_root_path, path) for path in self.df['Path'].tolist()]
-        if assert_images:
+        if assert_images_exist:
             print("Checking if all images exist...")
             assert self.assert_images_exist(image_root_path), "One or more image paths are invalid!"
             print("...done")
@@ -139,7 +128,7 @@ class CheXpert(Dataset):
             imratio_list = []
             for class_key, select_col in enumerate(train_cols):
                 imratio = self.value_counts_dict[class_key][1] / (
-                        self.value_counts_dict[class_key][0] + self.value_counts_dict[class_key][1])
+                          self.value_counts_dict[class_key][0] + self.value_counts_dict[class_key][1])
                 imratio_list.append(imratio)
                 print('Found %s images in total, %s positive images, %s negative images' % (
                     self._num_images, self.value_counts_dict[class_key][1], self.value_counts_dict[class_key][0]))

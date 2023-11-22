@@ -15,25 +15,10 @@ from functions import multi_label_auroc, losses, optimizers
 class Trainer:
 
     def __init__(self,
-                 model: nn.Module,
-                 train_set: Dataset | CheXpert,
-                 valid_set: Dataset | CheXpert,
-                 loss: str,
-                 optimizer: str,
-                 learning_rate: float,
-                 epochs: int,
-                 batch_size: int = 32,
-                 update_steps: int = 2000,
-                 save_on_epoch: bool = True,
-                 use_auc_on_val: bool = False,
-                 early_stopping: bool = True,
-                 early_stopping_patience: int = 5,
-                 lr_scheduler: str = None,
-                 plateau_patience: int = 3,
-                 exponential_gamma: float = 0.01,
-                 cyclic_lr: tuple[float, float] = (0.001, 0.01),
-                 write_summary: bool = True,
-                 seed: int = 42069
+                 trainParams: TrainParams,
+                 modelParams: ModelParams,
+                 dataTrainParams: DatasetParams,
+                 dataValParams: DatasetParams
                  ):
 
         # various variable declarations
@@ -63,7 +48,7 @@ class Trainer:
         # string and bool selectors
         self.save_on_epoch = save_on_epoch
         self.use_auc_on_val = use_auc_on_val
-        self.write_summary = write_summary
+        self.write_summary = write_logs
 
         # early stopping
         self.early_stopping = early_stopping
@@ -338,6 +323,7 @@ class Trainer:
         else:
             score_name = "Val_Loss"
         torch.save({"model": self.model.state_dict(),
+                    "modelParams": self.modelParams,
                     "optimizer": self.optimizer.state_dict(),
                     "epoch": self.current_epoch,
                     "score_name": score_name,
