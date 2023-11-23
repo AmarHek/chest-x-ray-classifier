@@ -16,32 +16,49 @@ class DatasetParams(BaseParams):
     verbose: bool = True
 
     image_format: str = "jpeg"  # dicom or jpeg
-    image_size: int = 320
+    image_size: Tuple[int] = (320, 320)
+    normalization: str = "imagenet"  # imagenet, None or custom one depending on dataset
 
     augment: bool = True
     mode: str = 'train'
     shuffle: bool = True
 
     # label smoothing
-    use_lsr_random: bool = True
-    use_lsr_dam: bool = False
+    lsr_method = "dam"  # [dam | pham | None]
+
+    # lsr dam params
+    lsr_one_cols: List[str] = field(default_factory=lambda: [])
+    lsr_zero_cols: List[str] = field(default_factory=lambda: [])
+
+    # lsr pham params
+    lsr_lower: float = 0.1
+    lsr_upper: float = 0.9
 
 
 @dataclass
 class ChexpertParams(DatasetParams):
     name = "CheXpert Parameters"
 
-    use_frontal: bool = True
-    use_ap: bool = False
-    use_pa: bool = False
+    scan_orientation: str = "frontal"  # [frontal | lateral | all]
+    scan_projection: str = "all"  # [all | ap | pa]
 
     # labels
-    train_cols: List[str] = field(default_factory=lambda:
-                                  ['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion'])
+    train_labels: List[str] = field(default_factory=lambda:
+                                    ['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion'])
 
     # upsampling
-    use_upsampling: bool = True
-    upsampling_cols: List[str] = field(default_factory=lambda: ['Cardiomegaly', 'Consolidation'])
+    use_upsampling: bool = False
+    upsample_labels: List[str] = field(default_factory=lambda: ['Cardiomegaly', 'Consolidation'])
+
+    # lsr dam params
+    lsr_one_cols: List[str] = field(default_factory=lambda:
+                                    ['Edema', 'Atelectasis'])
+    lsr_zero_cols: List[str] = field(default_factory=lambda:
+                                    ['Cardiomegaly', 'Consolidation', 'Pleural Effusion'])
+
+    # lsr pham params
+    lsr_lower: float = 0.55
+    lsr_upper: float = 0.85
 
 
 @dataclass
@@ -54,8 +71,8 @@ class AugmentationParams(BaseParams):
     scale: Tuple[float, float] = (0.95, 1.05)
     fill: int = 128
 
-    randomCrop: bool = False
-    crop_size: Tuple[int, int] = (256, 256)
+    randomResizedCrop: bool = False
+    crop_scale: Tuple[float, float] = (0.9, 1.0)
 
-    horizontalFlip: bool = False
+    horizontalFlip: bool = True
     verticalFlip: bool = False
