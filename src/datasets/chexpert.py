@@ -20,6 +20,8 @@ class CheXpert(Dataset):
         # Assertions
         assert os.path.isdir(params.image_root_path), 'Need a valid path for the images!'
         assert os.path.exists(params.csv_path), 'Need a valid path for the csv!'
+        assert params.mode in ['train', 'val', 'test'], 'Invalid mode!'
+        assert augmentationParams is not None if params.augment else True, 'Need augmentation params!'
 
         # set parameters
         self.mode = params.mode

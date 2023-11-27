@@ -5,7 +5,7 @@ from typing import Union
 import torch.cuda
 from torch.utils.data import Dataset, DataLoader
 
-from src.functions import metrics_selector as metrics_dict, metric_is_valid
+from src.components import metrics_selector as metrics_dict, metric_is_valid
 from src.util.util import get_file_contents_as_list, serialize_numpy_array
 
 

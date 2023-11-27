@@ -1,15 +1,14 @@
 import numpy as np
 import torch.cuda
-import torch.nn as nn
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-
 
 import os
 from tqdm import tqdm
 
-from datasets.chexpert import CheXpert
-from functions import multi_label_auroc, losses, optimizers
+from datasets import load_dataset
+from components import multi_label_auroc, losses, optimizers
+from params import TrainParams, ModelParams, DatasetParams, AugmentationParams
 
 
 class Trainer:
@@ -18,8 +17,16 @@ class Trainer:
                  trainParams: TrainParams,
                  modelParams: ModelParams,
                  dataTrainParams: DatasetParams,
-                 dataValParams: DatasetParams
+                 dataValParams: DatasetParams,
+                 augmentationParams: AugmentationParams
                  ):
+
+        # track params
+        self.trainParams = trainParams
+        self.modelParams = modelParams
+        self.dataTrainParams = dataTrainParams
+        self.dataValParams = dataValParams
+        self.augmentationParams = augmentationParams
 
         # various variable declarations
         self.train_loader = None
@@ -31,19 +38,18 @@ class Trainer:
         self.writer = None
 
         # Basic necessities
-        self.model = model
-        self.train_set = train_set
-        self.valid_set = valid_set
-        self.batch_size = batch_size
-        self.set_dataloaders(batch_size)
-        self.update_steps = update_steps
-        self.learning_rate = learning_rate
-        self.epochs = epochs
+        self.model = load_model(modelParams)
+        self.train_set = load_dataset(dataTrainParams, augmentationParams)
+        self.valid_set = load_dataset(dataValParams, augmentationParams)
+        self.batch_size = trainParams.batch_size
+        self.update_steps = trainParams.update_steps
+        self.learning_rate = trainParams.learning_rate
+        self.n_epochs = trainParams.n_epochs
         self.current_epoch = 0
         self.set_device()
-        self.set_loss(loss)
-        self.set_optimizer(optimizer, learning_rate)
-        self.seed = seed
+        self.set_loss(trainParams.loss)
+        self.set_optimizer(trainParams.optimizer, trainParams.learning_rate)
+        self.seed = trainParams.seed
 
         # string and bool selectors
         self.save_on_epoch = save_on_epoch
@@ -69,13 +75,15 @@ class Trainer:
 
     def set_dataloaders(self, batch_size=32, num_workers=2):
         print("Setting up dataloaders")
-        self.train_loader = DataLoader(self.train_set, batch_size=batch_size,
-                                       num_workers=num_workers, drop_last=True, shuffle=True)
-        self.valid_loader = DataLoader(self.valid_set, batch_size=batch_size,
-                                       num_workers=num_workers, drop_last=False, shuffle=False)
+        train_loader = DataLoader(self.train_set, batch_size=batch_size,
+                                  num_workers=num_workers, drop_last=True, shuffle=True)
+        valid_loader = DataLoader(self.valid_set, batch_size=batch_size,
+                                  num_workers=num_workers, drop_last=False, shuffle=False)
+
+        return train_loader, valid_loader
 
     def set_epochs(self, new_epochs: int):
-        self.epochs = new_epochs
+        self.n_epochs = new_epochs
 
     def set_loss(self, loss):
         loss = loss.lower()
@@ -274,7 +282,7 @@ class Trainer:
             print(f"Summary Writer enabled, setting up with log_path {log_path}")
             self.set_summary_writer(location=log_path)
 
-        for epoch in tqdm(range(self.epochs)):
+        for epoch in tqdm(range(self.n_epochs)):
 
             self.current_epoch = epoch
 
@@ -335,7 +343,7 @@ class Trainer:
 
     def load_model_dict(self, load_path: str):
         load_dict = torch.load(load_path)
-        # TODO: Add option to generate model from model library?
+        self.model_params = load_dict["modelParams"]
         self.model.load_state_dict(load_dict["model"])
         self.optimizer.load_state_dict(load_dict["optimizer"])
         self.current_epoch = load_dict["epoch"]

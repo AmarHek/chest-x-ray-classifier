@@ -1,5 +1,5 @@
 import torch
-from src.models import cnn_models
+from src.models import model_components
 if __name__ == "__main__":
 
     #model_path = "C:/Users/Amar/Documents/resnet50_best.pt"

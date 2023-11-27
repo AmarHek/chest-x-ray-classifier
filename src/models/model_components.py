@@ -1,8 +1,9 @@
 import torchvision.models
 import torch.nn as nn
+from torch.nn import Sequential
 
 
-def get_pretrained_model(architecture: str, pretrained: bool = True) -> nn.Module:
+def get_pretrained_model(architecture: str, weights: str = "DEFAULT") -> nn.Module:
     architectures = {
         "densenet121": torchvision.models.densenet121,
         "densenet161": torchvision.models.densenet161,
@@ -17,22 +18,6 @@ def get_pretrained_model(architecture: str, pretrained: bool = True) -> nn.Modul
         "resnext50_32x4d": torchvision.models.resnext50_32x4d,
         "resnext101_32x8d": torchvision.models.resnext101_32x8d,
         "resnext101_64x4d": torchvision.models.resnext101_64x4d
-    }
-
-    weights_dict = {
-        "densenet121": torchvision.models.DenseNet121_Weights.DEFAULT,
-        "densenet161": torchvision.models.DenseNet161_Weights.DEFAULT,
-        "efficientnet_b1": torchvision.models.EfficientNet_B1_Weights.DEFAULT,
-        "efficientnet_b2": torchvision.models.EfficientNet_B2_Weights.DEFAULT,
-        "efficientnet_v2_s": torchvision.models.EfficientNet_V2_S_Weights.DEFAULT,
-        "efficientnet_v2_m": torchvision.models.EfficientNet_V2_M_Weights.DEFAULT,
-        "efficientnet_v2_l": torchvision.models.EfficientNet_V2_L_Weights.DEFAULT,
-        "resnet50": torchvision.models.ResNet50_Weights.DEFAULT,
-        "resnet101": torchvision.models.ResNet101_Weights.DEFAULT,
-        "resnet152": torchvision.models.ResNet152_Weights.DEFAULT,
-        "resnext50_32x4d": torchvision.models.ResNeXt50_32X4D_Weights.DEFAULT,
-        "resnext101_32x8d": torchvision.models.ResNeXt101_32X8D_Weights.DEFAULT,
-        "resnext101_64x4d": torchvision.models.ResNeXt101_64X4D_Weights.DEFAULT
     }
 
     architecture = architecture.lower()
@@ -123,8 +108,3 @@ def sequential_model(architecture: str, n_classes: int, pretrained: bool = True,
         model.classifier = classifier
 
     return model
-
-
-if __name__ == "__main__":
-    test_model = sequential_model("inception_v3", 5, classifier_function="sigmoid")
-    print(test_model)

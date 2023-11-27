@@ -14,29 +14,33 @@ class TrainParams(BaseParams):
     seed: int = 42069
 
     # Logging
-    write_logs: bool = True
-    logger: str = "tensorboard"  # [tensorboard | wandb]
-    update_steps: int = 1000
-
-    # epoch parameters
-    n_epochs: int = 100
+    # TODO implement wandb
+    logger: str = "tensorboard"  # [tensorboard | wandb | None]
+    update_steps: int = 100  # how often to update the logger
     save_epoch_freq: int = 1
     max_keep_ckpts: int = 3  # how many checkpoints to save (beside best)
-    validate: bool = False
-    continue_train: bool = False
 
-    # dataset parameters
+    # general parameters
+    n_epochs: int = 100
+    continue_train: bool = False
     batch_size: int = 32
+
+    # hardware
+    device: str = "cuda"
     num_workers: int = 4
 
-    # loss and optimizer parameters
+    # loss and optimizer
     loss: str = 'bce'
     optimizer: str = 'adam'
     learning_rate: float = 0.0002
-    # TODO Add more optimizer parameters
 
     # validation parameters
     validation_metrics: str = "loss"
+    validation_metrics_mode: str = "min"  # [min | max]
+    validation_epoch_freq: int = 1
+    validation_batch_size: int = 32
+
+    # early stopping
     early_stopping: bool = False
     early_stopping_patience: int = 10
 
