@@ -3,12 +3,21 @@ import torch.nn as nn
 from torch.nn import Sequential
 
 
-def get_pretrained_model(architecture: str, weights: str = "DEFAULT") -> nn.Module:
+def get_backbone(architecture: str, weights: str = "DEFAULT") -> nn.Module:
+
+    # all available architectures
     architectures = {
         "densenet121": torchvision.models.densenet121,
         "densenet161": torchvision.models.densenet161,
+        "densenet169": torchvision.models.densenet169,
+        "densenet201": torchvision.models.densenet201,
         "efficientnet_b1": torchvision.models.efficientnet_b1,
         "efficientnet_b2": torchvision.models.efficientnet_b2,
+        "efficientnet_b3": torchvision.models.efficientnet_b3,
+        "efficientnet_b4": torchvision.models.efficientnet_b4,
+        "efficientnet_b5": torchvision.models.efficientnet_b5,
+        "efficientnet_b6": torchvision.models.efficientnet_b6,
+        "efficientnet_b7": torchvision.models.efficientnet_b7,
         "efficientnet_v2_s": torchvision.models.efficientnet_v2_s,
         "efficientnet_v2_m": torchvision.models.efficientnet_v2_m,
         "efficientnet_v2_l": torchvision.models.efficientnet_v2_l,
@@ -17,19 +26,34 @@ def get_pretrained_model(architecture: str, weights: str = "DEFAULT") -> nn.Modu
         "resnet152": torchvision.models.resnet152,
         "resnext50_32x4d": torchvision.models.resnext50_32x4d,
         "resnext101_32x8d": torchvision.models.resnext101_32x8d,
-        "resnext101_64x4d": torchvision.models.resnext101_64x4d
+        "resnext101_64x4d": torchvision.models.resnext101_64x4d,
+        "swin_b": torchvision.models.swin_b,
+        "swin_t": torchvision.models.swin_t,
+        "swin_s": torchvision.models.swin_s,
+        "swin_v2_b": torchvision.models.swin_v2_b,
+        "swin_v2_t": torchvision.models.swin_v2_t,
+        "swin_v2_s": torchvision.models.swin_v2_s,
+        "inception_v3": torchvision.models.inception_v3,
+        "vgg11": torchvision.models.vgg11
     }
 
     architecture = architecture.lower()
-
     assert architecture in architectures.keys(), "%s is an invalid architecture!" % architecture
 
-    if pretrained:
-        weights = weights_dict[architecture]
-    else:
-        weights = None
+    # load the model
+    backbone = architectures[architecture](weights=weights)
 
-    return architectures[architecture](weights=weights)
+    # preprocess based on architecture
+    if any(model_base in architecture for model_base in ["efficientnet", "swin", "densenet", "vgg11"]):
+        backbone = backbone.features
+    elif "inception" in architecture:
+        backbone = Sequential(*list(backbone.children())[:-3])
+    elif "resnet" in architecture or "resnext" in architecture:
+        backbone = Sequential(*list(backbone.children())[:-2])
+    else:
+        raise ValueError("Unsupported model architecture. Please modify the code accordingly.")
+
+    return backbone
 
 
 def get_classifier_function(classifier_function: str):
@@ -47,64 +71,3 @@ def get_classifier_function(classifier_function: str):
         "%s is an invalid classifier function!" % classifier_function
 
     return classifier_functions[classifier_function]
-
-
-def get_classifier(architecture: str, n_classes: int, classifier_function,
-                   long_classifier: bool = False, dropout: float = 0.2) -> nn.Module:
-
-    shape_dict = {
-        "densenet121": 1024,
-        "densenet161": 2208,
-        "efficientnet_b1": 1280,
-        "efficientnet_b2": 1408,
-        "efficientnet_v2_s": 1280,
-        "efficientnet_v2_m": 1280,
-        "efficientnet_v2_l": 1280,
-        "resnet50": 2048,
-        "resnet101": 2048,
-        "resnet152": 2048,
-        "resnext50_32x4d": 2048,
-        "resnext101_32x8d": 2048,
-        "resnext101_64x4d": 2048
-    }
-
-    assert architecture in shape_dict.keys(), "Invalid architecture!"
-    out_features = shape_dict[architecture]
-
-    # define a new classifier with custom layers
-    if long_classifier:
-        classifier = nn.Sequential(nn.Linear(out_features, 512),
-                                   nn.ReLU(),
-                                   nn.Dropout(dropout),
-                                   nn.Linear(512, n_classes),
-                                   classifier_function)
-    else:
-        classifier = nn.Sequential(nn.Linear(out_features, n_classes),
-                                   classifier_function)
-
-    return classifier
-
-
-def sequential_model(architecture: str, n_classes: int, pretrained: bool = True, finetune: bool = False,
-                     long_classifier: bool = False, classifier_function: str = "sigmoid",
-                     dropout: float = 0.2) -> nn.Module:
-
-    # get pretrained model and classifier function
-    model = get_pretrained_model(architecture, pretrained=pretrained)
-    classifier_function = get_classifier_function(classifier_function)
-
-    # freeze all pretrained layers if wanted
-    if finetune:
-        for param in model.parameters():
-            param.requires_grad = False
-
-    classifier = get_classifier(architecture, n_classes, classifier_function=classifier_function,
-                                long_classifier=long_classifier, dropout=dropout)
-
-    # replace the pretrained model's classifier with our new one
-    if "resnet" in architecture or "resnext" in architecture:
-        model.fc = classifier
-    else:
-        model.classifier = classifier
-
-    return model

@@ -1,6 +1,9 @@
+import torch
 from torch import nn
-import torchvision.models as tvmodels
+from torch.nn import Sequential
+
 from params.model_params import ModelParams
+from models.model_components import get_backbone
 
 
 class PretrainedModel(nn.Module):
@@ -10,19 +13,9 @@ class PretrainedModel(nn.Module):
         super(PretrainedModel, self).__init__()
         self.model_params = model_params
 
-        self.backbone = self.get_pretrained_model()
+        self.backbone = get_backbone(self.model_params.backbone, self.model_params.weights)
 
         self.classifier = self.get_classifier()
-
-    @staticmethod
-    def remove_classifier(backbone):
-        # Check if the model has a classifier (fc) attribute
-        if hasattr(backbone, 'fc'):
-            del backbone.fc
-        elif hasattr(backbone, 'classifier'):
-            del backbone.classifier
-        else:
-            raise ValueError("Unsupported model architecture. Please modify the code accordingly.")
 
     @staticmethod
     def get_num_features(model, input_tensor):
@@ -38,8 +31,8 @@ class PretrainedModel(nn.Module):
 
 
 if __name__ == "__main__":
-    # model = tvmodels.densenet121(weights="DEFAULT")
-    model = tvmodels.efficientnet_b2(weights="DEFAULT")
-    # model2 = tvmodels.vit_l_32(weights="DEFAULT")
-    print(model)
+    import torchvision.models as tvmodels
 
+    model = tvmodels.resnet50()
+    backbone = Sequential(*list(model.children())[:-1])
+    print(backbone)

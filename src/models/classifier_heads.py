@@ -8,7 +8,8 @@ class LinearClassifier(nn.Module):
         self.head = nn.Conv2d(input_dim, num_classes, 1, bias=False)
 
 
-class CSRA(nn.Module): # one basic block
+class CSRA(nn.Module):
+    # one basic block
     def __init__(self, input_dim, num_classes, T, lam):
         super(CSRA, self).__init__()
         self.T = T      # temperature
@@ -33,7 +34,7 @@ class CSRA(nn.Module): # one basic block
         return base_logit + self.lam * att_logit
 
 
-class MHA(nn.Module):  # multi-head attention
+class CSRAMulti(nn.Module):  # multi-head attention
     temp_settings = {  # softmax temperature settings
         1: [1],
         2: [1, 99],
@@ -43,7 +44,7 @@ class MHA(nn.Module):  # multi-head attention
     }
 
     def __init__(self, num_heads, lam, input_dim, num_classes):
-        super(MHA, self).__init__()
+        super(CSRAMulti, self).__init__()
         self.temp_list = self.temp_settings[num_heads]
         self.multi_head = nn.ModuleList([
             CSRA(input_dim, num_classes, self.temp_list[i], lam)

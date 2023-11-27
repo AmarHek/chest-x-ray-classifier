@@ -1,4 +1,4 @@
-import os
+import ospretrained
 
 from src.datasets.chexpert import CheXpert
 from src.makers.tester import Tester
