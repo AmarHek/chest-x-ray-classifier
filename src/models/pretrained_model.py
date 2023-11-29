@@ -33,6 +33,6 @@ class PretrainedModel(nn.Module):
 if __name__ == "__main__":
     import torchvision.models as tvmodels
 
-    model = tvmodels.resnet50()
-    backbone = Sequential(*list(model.children())[:-1])
-    print(backbone)
+    weights = tvmodels.ViT_L_32_Weights.DEFAULT
+    preprocess = weights.transforms
+    print(preprocess)
