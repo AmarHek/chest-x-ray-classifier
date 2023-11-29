@@ -18,6 +18,7 @@ class DatasetParams(BaseParams):
     image_format: str = "jpeg"  # dicom or jpeg
     image_size: Tuple[int] = (320, 320)
     normalization: str = "imagenet"  # imagenet, None or custom one depending on dataset
+    preprocessing: str = None  # preprocessing function depending on the model (or custom function)
 
     augment: bool = True
     mode: str = 'train'
@@ -36,7 +37,7 @@ class DatasetParams(BaseParams):
 
 
 @dataclass
-class ChexpertParams(DatasetParams):
+class CheXpertParams(DatasetParams):
     name = "CheXpert Parameters"
 
     scan_orientation: str = "frontal"  # [frontal | lateral | all]

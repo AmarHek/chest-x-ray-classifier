@@ -5,7 +5,7 @@ from PIL import Image
 import pandas as pd
 import os
 
-from params.dataset_params import ChexpertParams, AugmentationParams
+from params.dataset_params import CheXpertParams, AugmentationParams
 from preprocessing import means, stds
 from util.util import check_files
 
@@ -13,7 +13,7 @@ from util.util import check_files
 class CheXpert(Dataset):
 
     def __init__(self,
-                 params: ChexpertParams,
+                 params: CheXpertParams,
                  augmentationParams: AugmentationParams = None,
                  seed: int = 42069):
 
@@ -262,7 +262,7 @@ class CheXpert(Dataset):
 
 
 if __name__ == '__main__':
-    dataset_params = ChexpertParams()
+    dataset_params = CheXpertParams()
     dataset_params.image_root_path = "F:/"
     dataset_params.csv_path = "F:/CheXpert-v1.0/train.csv"
     dataset_params.use_upsampling = True
