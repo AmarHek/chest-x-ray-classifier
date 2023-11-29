@@ -37,37 +37,44 @@ class Trainer:
         self.device = None
         self.writer = None
 
-        # Basic necessities
+        # Model Loading
         self.model = load_model(modelParams)
         self.train_set = load_dataset(dataTrainParams, augmentationParams)
         self.valid_set = load_dataset(dataValParams, augmentationParams)
         self.batch_size = trainParams.batch_size
-        self.update_steps = trainParams.update_steps
-        self.learning_rate = trainParams.learning_rate
-        self.n_epochs = trainParams.n_epochs
+
         self.current_epoch = 0
         self.set_device()
+
+        self.n_epochs = trainParams.n_epochs
+        self.learning_rate = trainParams.learning_rate
+        self.seed = trainParams.seed
         self.set_loss(trainParams.loss)
         self.set_optimizer(trainParams.optimizer, trainParams.learning_rate)
-        self.seed = trainParams.seed
 
-        # string and bool selectors
-        self.save_on_epoch = save_on_epoch
-        self.use_auc_on_val = use_auc_on_val
+        # saving and logging
+        self.update_steps = trainParams.update_steps
+        self.save_epoch_freq = trainParams.save_epoch_freq
+        self.max_keep_ckpts = trainParams.max_keep_ckpts
         self.write_summary = write_logs
 
-        # early stopping
-        self.early_stopping = early_stopping
-        self.early_stopping_patience = early_stopping_patience
-        self.early_stopping_tracker = 0
+        # validation
+        self.validation_metric = trainParams.validation_metric
+        self.validation_metric_mode = trainParams.validation_metric_mode
         self.best_score = 0
         self.current_score = 0
 
+        # early stopping
+        self.early_stopping = trainParams.early_stopping
+        self.early_stopping_patience = trainParams.early_stopping_patience
+        self.early_stopping_tracker = 0
+
         # learning rate schedules
-        self.lr_scheduler = lr_scheduler
-        self.plateau_patience = plateau_patience
-        self.exponential_gamma = exponential_gamma
-        self.cyclic_lr = cyclic_lr
+        # TODO: implement external lr scheduler function loader
+        self.lr_scheduler = trainParams.lr_policy
+        self.plateau_patience = trainParams.plateau_patience
+        self.exponential_gamma = trainParams.exponential_gamma
+        self.cyclic_lr = trainParams.cyclic_lr
 
     def set_device(self):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -85,6 +92,7 @@ class Trainer:
     def set_epochs(self, new_epochs: int):
         self.n_epochs = new_epochs
 
+    # TODO: implement external loss function loader
     def set_loss(self, loss):
         loss = loss.lower()
         assert loss in losses.keys(), "Invalid loss!"
@@ -96,6 +104,7 @@ class Trainer:
         else:
             self.loss = losses[loss]
 
+    # TODO: implement external optimizer function loader
     def set_optimizer(self, optimizer, learning_rate):
         optimizer = optimizer.lower()
         assert optimizer in optimizers.keys(), "Invalid optimizer!"
@@ -155,6 +164,17 @@ class Trainer:
             print(f"No improvement. Incrementing Early Stopping tracker to {self.early_stopping_tracker}")
 
         return self.early_stopping_tracker > self.early_stopping_patience
+
+    def validation_improvement(self) -> bool:
+        if self.validation_metric_mode == "max":
+            condition = (self.best_score < self.current_score)
+        elif self.validation_metric_mode == "min":
+            condition = (self.best_score > self.current_score)
+        else:
+            raise ValueError("Invalid validation metric mode!")
+
+        return condition
+
 
     def train_epoch(self) -> float:
         # training for a single epoch
@@ -308,11 +328,8 @@ class Trainer:
                 self.save_model_dict(os.path.join(experiment_path, model_name_base + f"_epoch_{epoch}.pth"))
 
             # save best model
-            if self.use_auc_on_val:
-                condition = (self.best_score < self.current_score)
-            else:
-                condition = (self.best_score > self.current_score)
-            if condition:
+            improvement = self.validation_improvement()
+            if improvement:
                 print(f'Model improved at epoch {epoch}, saving model.')
                 self.best_score = self.current_score
                 self.save_model_dict(os.path.join(experiment_path, model_name_base + f"_{epoch}_best.pth"))
@@ -320,21 +337,17 @@ class Trainer:
 
             # early stopping
             if self.early_stopping:
-                if self.check_early_stopping(condition):
+                if self.check_early_stopping(improvement):
                     print(f"Early stopping at {epoch}")
                     break
 
     def save_model_dict(self, model_path: str):
-        # TODO: Save model parameters as well?
-        if self.use_auc_on_val:
-            score_name = "Val_AUC"
-        else:
-            score_name = "Val_Loss"
         torch.save({"model": self.model.state_dict(),
                     "modelParams": self.modelParams,
                     "optimizer": self.optimizer.state_dict(),
                     "epoch": self.current_epoch,
-                    "score_name": score_name,
+                    "validation_metric": self.validation_metric,
+                    "validation_metric_mode": self.validation_metric_mode,
                     "score": self.current_score,
                     "best_score": self.best_score}, model_path)
 
@@ -343,17 +356,11 @@ class Trainer:
 
     def load_model_dict(self, load_path: str):
         load_dict = torch.load(load_path)
-        self.model_params = load_dict["modelParams"]
-        self.model.load_state_dict(load_dict["model"])
+        self.modelParams = load_dict["modelParams"]
+        self.model = load_model(self.modelParams)
         self.optimizer.load_state_dict(load_dict["optimizer"])
         self.current_epoch = load_dict["epoch"]
         self.best_score = load_dict["best_score"]
         self.current_score = load_dict["score"]
-
-        score_name = load_dict["score_name"]
-        if score_name == "Val_AUC":
-            self.use_auc_on_val = True
-        elif score_name == "Val_Loss":
-            self.use_auc_on_val = False
-        else:
-            raise ValueError("Invalid score name!")
+        self.validation_metric = load_dict["validation_metric"]
+        self.validation_metric_mode = load_dict["validation_metric_mode"]
