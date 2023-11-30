@@ -1,6 +1,9 @@
+import torch
 import torchvision.models
 import torch.nn as nn
 from torch.nn import Sequential
+
+from models.util import Unsqueeze
 
 # all available architectures
 architectures = {
@@ -8,6 +11,7 @@ architectures = {
     "densenet161": torchvision.models.densenet161,
     "densenet169": torchvision.models.densenet169,
     "densenet201": torchvision.models.densenet201,
+    "efficientnet_b0": torchvision.models.efficientnet_b0,
     "efficientnet_b1": torchvision.models.efficientnet_b1,
     "efficientnet_b2": torchvision.models.efficientnet_b2,
     "efficientnet_b3": torchvision.models.efficientnet_b3,
@@ -18,6 +22,7 @@ architectures = {
     "efficientnet_v2_s": torchvision.models.efficientnet_v2_s,
     "efficientnet_v2_m": torchvision.models.efficientnet_v2_m,
     "efficientnet_v2_l": torchvision.models.efficientnet_v2_l,
+    "resnet18": torchvision.models.resnet18,
     "resnet50": torchvision.models.resnet50,
     "resnet101": torchvision.models.resnet101,
     "resnet152": torchvision.models.resnet152,
@@ -35,7 +40,6 @@ architectures = {
     "swin_v2_b": torchvision.models.swin_v2_b,
     "swin_v2_t": torchvision.models.swin_v2_t,
     "swin_v2_s": torchvision.models.swin_v2_s,
-    "inception_v3": torchvision.models.inception_v3,
     "vgg11": torchvision.models.vgg11
 }
 
@@ -54,7 +58,10 @@ def get_backbone(architecture: str, weights: str = "DEFAULT") -> nn.Module:
     elif "swin" in architecture:
         backbone = Sequential(*list(backbone.children())[:-3])
     elif "vit" in architecture:
-        backbone = Sequential(*list(backbone.children())[:-1])
+        # for vit, we need to add height and width to the output
+        # since we want to remove heads anyway, we can just replace it with our
+        # Unsqueeze for adding height and width dimensions
+        backbone.heads = Unsqueeze(dim=2, n_dims=2)
     elif "inception" in architecture:
         backbone = Sequential(*list(backbone.children())[:-3])
     elif "resnet" in architecture or "resnext" in architecture:
