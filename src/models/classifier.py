@@ -81,9 +81,10 @@ def classifier_head(head: str, in_features: int, num_classes, **kwargs):
 
     # get classifier head
     if head == "linear":
-        return LinearClassifier(in_features, num_classes)
+        return LinearClassifier(in_features=in_features, num_classes=num_classes)
     elif head == "csra":
-        return CSRA(in_features, num_classes, kwargs["num_heads"], kwargs["lam"])
+        return CSRA(input_dim=in_features, num_classes=num_classes,
+                    num_heads=kwargs["num_heads"], lam=kwargs["lam"])
     elif head == "none":
         return nn.Identity()
     else:
