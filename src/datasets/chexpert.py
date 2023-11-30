@@ -246,7 +246,8 @@ class CheXpert(Dataset):
 
         transforms.append(tfs.Resize(size=self.image_size))
         transforms.append(tfs.ToTensor())
-        transforms.append(tfs.Normalize(mean=self.__mean__, std=self.__std__))
+        if self.__mean__ is not None and self.__std__ is not None:
+            transforms.append(tfs.Normalize(mean=self.__mean__, std=self.__std__))
 
         return tfs.Compose(transforms)
 
@@ -265,10 +266,10 @@ if __name__ == '__main__':
     dataset_params = CheXpertParams()
     dataset_params.image_root_path = "F:/"
     dataset_params.csv_path = "F:/CheXpert-v1.0/train.csv"
-    dataset_params.use_upsampling = True
+    dataset_params.use_upsampling = False
+    dataset_params.normalization = "imagenet"
+    dataset_params.verbose = False
     augmentation_params = AugmentationParams()
-
-    print(dataset_params.upsample_labels, dataset_params.train_labels)
 
     dataset = CheXpert(dataset_params, augmentation_params)
 
@@ -277,6 +278,6 @@ if __name__ == '__main__':
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=4, num_workers=1, drop_last=True, shuffle=True)
 
     for batch in dataloader:
+        print(batch[0])
         print(batch[0].shape)
-        print(batch[1].shape)
         break
