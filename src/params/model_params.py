@@ -13,18 +13,29 @@ class ModelParams(BaseParams):
 
 @dataclass
 class PretrainedModelParams(ModelParams):
-    name = "Pretrained Model Parameters"
+    backbone: str = "densenet121"
+    weights: str = "DEFAULT"  # [DEFAULT | IMAGENET1K_V1 | IMAGENET1K_V2]
 
-    model_name: str = "densenet121"
+    # -1 = freeze no layers, 0 = freeze all layers,
+    # 1 = freeze all but last layer, etc.
+    freeze_depth: int = -1
 
-    # freeze layers
-    freeze: bool = False
-    # 0 = freeze all layers, 1 = freeze all but last layer, etc., the way of freezing depends on the model
-    freeze_depth: int = 0
+    # dropout
+    dropout: float = 0.0  # dropout is applied after avg pool
 
     # classifier
-    linear_weights: List[int] = field(default_factory=lambda: [512])  # how many neurons in each linear layer
-    activation_function: str = "relu"  # [relu | leaky_relu | sigmoid | tanh]
-    dropout: List[float] = field(default_factory=lambda: [0.5])  # dropout rate for each linear layer
-    # length must be the same as linear_weights, set to 0 to disable dropout for a layer
-    classifier_function: str = "sigmoid"  # [sigmoid | softmax]
+    head: str = "linear"  # [linear | csra | none]
+    classifier_function: str = "sigmoid"  # [sigmoid | softmax | logsoftmax | logsigmoid]
+    num_classes: int = 1
+
+    # csra params
+    num_heads: int = 1
+    lam: float = 0.1
+
+    # more classifier params can be added here
+
+
+@dataclass
+class CustomModelParams(ModelParams):
+    model_name: str = "custom"
+    # Custom Model Parameters can be added here
