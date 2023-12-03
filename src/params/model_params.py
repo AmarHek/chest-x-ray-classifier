@@ -7,7 +7,6 @@ from params.base_params import BaseParams
 @dataclass
 class ModelParams(BaseParams):
     name = "Model Parameters"
-
     model_type = "pretrained"  # [pretrained | custom]
 
 
