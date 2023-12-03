@@ -6,9 +6,11 @@ from torch.utils.tensorboard import SummaryWriter
 import os
 from tqdm import tqdm
 
+from components import get_optimizer
 from datasets import load_dataset
-from components import multi_label_auroc, losses, optimizers
+from components import multi_label_auroc, get_loss,
 from params import TrainParams, ModelParams, DatasetParams, AugmentationParams
+from models import load_model
 
 
 class Trainer:
@@ -29,18 +31,16 @@ class Trainer:
         self.augmentationParams = augmentationParams
 
         # various variable declarations
-        self.train_loader = None
-        self.valid_loader = None
-        self.loss = None
-        self.optimizer = None
-        self.scheduler = None
-        self.device = None
+        # TODO: implement device loader
+        self.device = self.get_device(trainParams.device)
+        # TODO: implement logger loader
         self.writer = None
 
         # Model Loading
         self.model = load_model(modelParams)
-        self.train_set = load_dataset(dataTrainParams, augmentationParams)
-        self.valid_set = load_dataset(dataValParams, augmentationParams)
+        train_set = load_dataset(dataTrainParams, augmentationParams)
+        valid_set = load_dataset(dataValParams, augmentationParams)
+        self.trainLoader, self.validLoader = self.set_dataloaders(train_set, valid_set)
         self.batch_size = trainParams.batch_size
 
         self.current_epoch = 0
@@ -49,8 +49,12 @@ class Trainer:
         self.n_epochs = trainParams.n_epochs
         self.learning_rate = trainParams.learning_rate
         self.seed = trainParams.seed
-        self.set_loss(trainParams.loss)
-        self.set_optimizer(trainParams.optimizer, trainParams.learning_rate)
+        self.loss = get_loss(**trainParams.to_dict())
+        self.optimizer = get_optimizer(trainParams.optimizer,
+                                       learning_rate=self.learning_rate,
+                                       model=self.model,
+                                       loss=self.loss,
+                                       **self.trainParams.to_dict())
 
         # saving and logging
         self.update_steps = trainParams.update_steps
@@ -70,16 +74,14 @@ class Trainer:
         self.early_stopping_tracker = 0
 
         # learning rate schedules
-        # TODO: implement external lr scheduler function loader
-        self.lr_scheduler = trainParams.lr_policy
-        self.plateau_patience = trainParams.plateau_patience
-        self.exponential_gamma = trainParams.exponential_gamma
-        self.cyclic_lr = trainParams.cyclic_lr
+        # TODO check mode max/min
+        self.lr_scheduler = get_scheduler(trainParams.lr_policy, self.optimizer, **trainParams.to_dict())
 
     def set_device(self):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         print(f"Device set to {self.device}.")
 
+    # TODO: implement dataloader loader
     def set_dataloaders(self, batch_size=32, num_workers=2):
         print("Setting up dataloaders")
         train_loader = DataLoader(self.train_set, batch_size=batch_size,
@@ -91,66 +93,6 @@ class Trainer:
 
     def set_epochs(self, new_epochs: int):
         self.n_epochs = new_epochs
-
-    # TODO: implement external loss function loader
-    def set_loss(self, loss):
-        loss = loss.lower()
-        assert loss in losses.keys(), "Invalid loss!"
-
-        if loss == "aploss":
-            self.loss = losses[loss](pos_len=self.train_set.imbalance_ratio * self.train_set.data_size)
-        elif loss == "compositionalaucloss":
-            self.loss = losses[loss](k=1)  # k is the number of inner updates for optimizing ce loss, TODO
-        else:
-            self.loss = losses[loss]
-
-    # TODO: implement external optimizer function loader
-    def set_optimizer(self, optimizer, learning_rate):
-        optimizer = optimizer.lower()
-        assert optimizer in optimizers.keys(), "Invalid optimizer!"
-
-        if optimizer == "pesg":
-            self.optimizer = optimizers[optimizer](self.model.parameters(),
-                                                   loss_fn=self.loss,
-                                                   lr=learning_rate,
-                                                   momentum=0.9,
-                                                   # Values from the paper
-                                                   # TODO perhaps add parameters to adjust these values
-                                                   margin=1.0,
-                                                   epoch_decay=0.003,
-                                                   weight_decay=0.0001)
-        elif optimizer == "pdsca":
-            self.optimizer = optimizers[optimizer](self.model.parameters(),
-                                                   loss_fn=self.loss,
-                                                   lr=learning_rate,
-                                                   # Values from the tutorial
-                                                   # TODO perhaps add parameters to adjust these values
-                                                   beta1=0.9,
-                                                   beta2=0.9,
-                                                   margin=1.0,
-                                                   epoch_decay=0.002,
-                                                   weight_decay=0.0001)
-        else:
-            self.optimizer = optimizers[optimizer](self.model.parameters(), lr=learning_rate)
-
-    def set_lr_scheduler(self, mode: str = "min"):
-        assert self.optimizer is not None, "Optimizer Function needs to be set before the scheduler!"
-
-        lr_scheduler = self.lr_scheduler.lower()
-        if lr_scheduler == "plateau":
-            self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer,
-                                                                        mode=mode,
-                                                                        patience=self.plateau_patience)
-        elif lr_scheduler == "exponential_decay":
-            self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimizer,
-                                                                    gamma=self.exponential_gamma)
-        elif lr_scheduler == "cyclic":
-            self.scheduler = torch.optim.lr_scheduler.CyclicLR(self.optimizer,
-                                                               base_lr=self.cyclic_lr[0],
-                                                               max_lr=self.cyclic_lr[1])
-        else:
-            self.scheduler = None
-            print("Invalid lr_scheduler specified!")
 
     def set_summary_writer(self, location: str = None, comment: str = ""):
         self.writer = SummaryWriter(log_dir=location, comment=comment)
@@ -174,7 +116,6 @@ class Trainer:
             raise ValueError("Invalid validation metric mode!")
 
         return condition
-
 
     def train_epoch(self) -> float:
         # training for a single epoch
