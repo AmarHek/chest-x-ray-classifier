@@ -1,6 +1,6 @@
 from src.datasets.chexpert import CheXpert
 from src.makers.trainer import Trainer
-from src.models import model_components as models
+from src.models import backbone as models
 from src.datasets.labels import labels_dict
 
 

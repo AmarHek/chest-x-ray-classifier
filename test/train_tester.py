@@ -1,5 +1,5 @@
 from src.datasets.chexpert import CheXpert
-from src.models import model_components
+from src.models import backbone
 from src.makers.trainer import Trainer
 
 if __name__ == '__main__':
