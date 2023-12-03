@@ -53,3 +53,6 @@ class TrainParams(BaseParams):
     plateau_patience: int = 5
     exponential_gamma: float = 0.01
     cyclic_lr: Tuple[float, float] = (0.001, 0.01)
+
+    # specific loss parameters
+    k: int = 1  # for comp. auc loss -  k is the number of inner updates for optimizing ce loss
