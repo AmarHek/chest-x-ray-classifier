@@ -1,22 +1,21 @@
 from torch.optim import lr_scheduler as lrs
 
 
-def get_scheduler(scheduler: str, optimizer, mode: str = "min", **kwargs):
-
-    if scheduler == "none":
-        return None
-    # TODO: implement linear and step
-    elif scheduler == "linear":
-        return lrs.StepLR(**kwargs)
-    elif scheduler == "step":
-        return lrs.StepLR(**kwargs)
+def get_scheduler(scheduler: str, optimizer, **kwargs):
+    if scheduler == "step":
+        return lrs.StepLR(optimizer=optimizer,
+                          step_size=kwargs["lr_decay_iters"],
+                          gamma=0.1)
     elif scheduler == "plateau":
         return lrs.ReduceLROnPlateau(optimizer=optimizer,
-                                     mode=mode,
-                                     patience=kwargs["plateau_patience"],)
+                                     mode=kwargs["mode"],
+                                     patience=kwargs["plateau_patience"],
+                                     factor=0.1,
+                                     threshold=0.01)
     elif scheduler == "cosine":
-        # TODO
-        return lrs.CosineAnnealingLR(**kwargs)
+        return lrs.CosineAnnealingLR(optimizer=optimizer,
+                                     T_max=kwargs["n_epochs"],
+                                     eta_min=0)
     elif scheduler == "cyclic":
         return lrs.CyclicLR(optimizer=optimizer,
                             base_lr=kwargs["cyclic_lr"][0],
