@@ -17,7 +17,7 @@ class Tester:
                  models_file: str = None,
                  metrics=None,
                  threshold: float = 0.5,
-                 batch_size: int = 10,
+                 batch_size: int = 32,
                  ensemble: bool = False):
 
         if model_paths is None and models_file is None:
