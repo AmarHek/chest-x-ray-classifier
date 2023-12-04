@@ -34,7 +34,7 @@ class TrainParams(BaseParams):
     optimizer: str = 'adam'
     learning_rate: float = 0.0002
     # which metrics to track during training
-    metrics: List[str] = field(default_factory=lambda: ["loss", "auc", "prec", "rec", "f1"])
+    metrics: List[str] = field(default_factory=lambda: ["auc", "prec", "rec", "f1"])
 
     # validation parameters
     validation_metric: str = "loss"  # which metric to use for saving best model
@@ -48,11 +48,10 @@ class TrainParams(BaseParams):
 
     # learning rate schedulers
     lr_policy: str = "plateau"  # [linear | step | plateau | cosine | cyclic | exponential]
-    lr_decay_iters: int = 50
-    n_epochs_decay: int = 100  # linear learning rate decay
-    plateau_patience: int = 5
-    exponential_gamma: float = 0.01
-    cyclic_lr: Tuple[float, float] = (0.001, 0.01)
+    lr_decay_iters: int = 50  # for step lr
+    plateau_patience: int = 5  # for plateau lr
+    exponential_gamma: float = 0.01  # for exponential lr
+    cyclic_lr: Tuple[float, float] = (0.001, 0.01)  # for cyclic lr
 
     # specific loss parameters
     k: int = 1  # for comp. auc loss -  k is the number of inner updates for optimizing ce loss
