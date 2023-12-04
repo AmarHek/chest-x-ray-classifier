@@ -1,15 +1,17 @@
+from datetime import datetime
+
 import numpy as np
 import torch.cuda
+import yaml
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 import os
 from tqdm import tqdm
 
-from components import get_optimizer
+from components import get_optimizer, get_loss, get_scheduler, load_metrics
 from datasets import load_dataset
-from components import multi_label_auroc, get_loss,
-from params import TrainParams, ModelParams, DatasetParams, AugmentationParams
+from params import TrainParams, DatasetParams, AugmentationParams
 from models import load_model
 
 
@@ -17,10 +19,10 @@ class Trainer:
 
     def __init__(self,
                  trainParams: TrainParams,
-                 modelParams: ModelParams,
+                 modelParams,
                  dataTrainParams: DatasetParams,
                  dataValParams: DatasetParams,
-                 augmentationParams: AugmentationParams
+                 augmentParams: AugmentationParams
                  ):
 
         # track params
@@ -28,45 +30,86 @@ class Trainer:
         self.modelParams = modelParams
         self.dataTrainParams = dataTrainParams
         self.dataValParams = dataValParams
-        self.augmentationParams = augmentationParams
+        self.augmentParams = augmentParams
+
+        # get unique work dir and initialize it
+        # add exp_name to work_dir
+        self.work_dir = os.path.join(self.trainParams.work_dir, self.trainParams.exp_name)
+        # add current date and time to work_dir
+        self.work_dir = self.work_dir + "_" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        # update experiment name
+        self.trainParams.exp_name = os.path.basename(self.work_dir)
+        # create the work_dir
+        os.makedirs(self.work_dir)
+
+        # seed
+        self.seed = trainParams.seed
 
         # various variable declarations
-        # TODO: implement device loader
-        self.device = self.get_device(trainParams.device)
-        # TODO: implement logger loader
-        self.writer = None
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"Device set to {self.device}.")
 
         # Model Loading
         self.model = load_model(modelParams)
-        train_set = load_dataset(dataTrainParams, augmentationParams)
-        valid_set = load_dataset(dataValParams, augmentationParams)
-        self.trainLoader, self.validLoader = self.set_dataloaders(train_set, valid_set)
-        self.batch_size = trainParams.batch_size
 
+        # TODO: auslagern
+        # change resolution in dataParams for some pretrained models (currently only ViT)
+        if modelParams.name == "ViT":
+            self.dataTrainParams.image_size = (384, 384)
+            self.dataValParams.image_size = (384, 384)
+
+        # Data Loading
+        self.train_set = load_dataset(dataTrainParams, augmentParams)
+        self.valid_set = load_dataset(dataValParams, augmentParams)
+        self.train_loader, self.val_loader = self.set_dataloaders(trainParams.batch_size, trainParams.num_workers)
+
+        # epoch tracking
         self.current_epoch = 0
-        self.set_device()
-
         self.n_epochs = trainParams.n_epochs
+
+        # losses, metrics, optimizer, etc.
         self.learning_rate = trainParams.learning_rate
-        self.seed = trainParams.seed
         self.loss = get_loss(**trainParams.to_dict())
         self.optimizer = get_optimizer(trainParams.optimizer,
                                        learning_rate=self.learning_rate,
                                        model=self.model,
                                        loss=self.loss,
                                        **self.trainParams.to_dict())
+        self.metrics = load_metrics(trainParams.metrics,
+                                    num_classes=self.modelParams.num_classes,
+                                    task='multilabel')
+        self.train_scores = {'loss': 0,
+                             **{metric: 0 for metric in trainParams.metrics}}
+        self.val_scores = {'loss': 0,
+                           **{metric: 0 for metric in trainParams.metrics}}
 
         # saving and logging
         self.update_steps = trainParams.update_steps
         self.save_epoch_freq = trainParams.save_epoch_freq
         self.max_keep_ckpts = trainParams.max_keep_ckpts
-        self.write_summary = write_logs
+        self.saved_checkpoints = []
+
+        # initialize logger
+        if self.trainParams.logger == "tensorboard":
+            os.makedirs(os.path.join(self.work_dir, 'logs'), exist_ok=True)
+            self.logger = SummaryWriter(log_dir=os.path.join(self.work_dir, 'logs'))
+        else:
+            self.logger = None
 
         # validation
+        assert trainParams.validation_metric in trainParams.metrics, "Validation metric not in metrics!"
         self.validation_metric = trainParams.validation_metric
         self.validation_metric_mode = trainParams.validation_metric_mode
-        self.best_score = 0
-        self.current_score = 0
+
+        # init best score depending on score criterion
+        if trainParams.validation_metric_mode == "max":
+            self.best_score = 0
+            self.current_score = 0
+        elif trainParams.validation_metric_mode == "min":
+            self.best_score = np.infty
+            self.current_score = np.infty
+        else:
+            raise ValueError("Invalid validation metric mode!")
 
         # early stopping
         self.early_stopping = trainParams.early_stopping
@@ -74,14 +117,18 @@ class Trainer:
         self.early_stopping_tracker = 0
 
         # learning rate schedules
-        # TODO check mode max/min
-        self.lr_scheduler = get_scheduler(trainParams.lr_policy, self.optimizer, **trainParams.to_dict())
+        self.lr_scheduler = get_scheduler(self.trainParams.lr_policy,
+                                          self.optimizer,
+                                          mode=self.validation_metric_mode,
+                                          epoch_count=self.current_epoch,
+                                          **self.trainParams.to_dict())
+        # only required for plateau scheduler
+        if self.trainParams.lr_policy == "plateau":
+            self.plateau = True
 
-    def set_device(self):
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        print(f"Device set to {self.device}.")
+        if self.trainParams.continue_train:
+            self.load_model()
 
-    # TODO: implement dataloader loader
     def set_dataloaders(self, batch_size=32, num_workers=2):
         print("Setting up dataloaders")
         train_loader = DataLoader(self.train_set, batch_size=batch_size,
@@ -95,7 +142,7 @@ class Trainer:
         self.n_epochs = new_epochs
 
     def set_summary_writer(self, location: str = None, comment: str = ""):
-        self.writer = SummaryWriter(log_dir=location, comment=comment)
+        self.logger = SummaryWriter(log_dir=location, comment=comment)
 
     def check_early_stopping(self, improvement: bool) -> bool:
         if improvement:
@@ -117,12 +164,14 @@ class Trainer:
 
         return condition
 
-    def train_epoch(self) -> float:
+    def train_epoch(self):
         # training for a single epoch
 
         # switch model to training mode
         self.model.train()
-        training_loss = 0
+        # reset running metrics
+        for metric in self.train_scores.keys():
+            self.train_scores[metric] = 0
 
         print(f'Training at epoch {self.current_epoch}...')
 
@@ -142,36 +191,44 @@ class Trainer:
             loss.backward()
             self.optimizer.step()
 
-            # Update training loss after each batch
-            training_loss += loss.item()
+            # Update metrics after each batch
+            self.train_scores['loss'] += loss.item()
+            for metric in self.metrics.keys()[1:]:
+                self.train_scores[metric] += self.metrics[metric](pred, labels)
+
+            # Logging
             if (batch + 1) % self.update_steps == 0:
-                print(f'[{self.current_epoch + 1}, {batch + 1:5d}] loss: {training_loss / (batch+1):.3f}')
-                if self.write_summary and self.writer is not None:
-                    self.writer.add_scalar('Loss/train', training_loss/(batch+1), (self.current_epoch+1)*(batch+1))
+                print(f'[{self.current_epoch + 1}, {batch + 1:5d}]:')
+                for metric in self.train_scores.keys():
+                    score = self.train_scores[metric] / (batch + 1)
+                    print(f"{metric.capitalize()}: {score:.4f}")
+                    if self.logger is not None:
+                        full_step = (self.current_epoch + 1) * (batch + 1)
+                        self.logger.add_scalar(f"{metric.capitalize()}/train", score / (batch + 1),
+                                               full_step)
 
         # clear memory
         del images, labels, loss
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-        # return average loss of training set
-        return training_loss/len(self.train_loader)
-
-    def validate(self) -> (float, float):
+    def validate(self):
 
         print(f'Validating at epoch {self.current_epoch}...')
 
         # Put model in eval mode
         self.model.eval()
 
-        # running loss
-        valid_loss = 0
+        # reset loss and metrics
+        for metric in self.val_scores.keys():
+            self.val_scores[metric] = 0
+
         # tensors to collect predictions and ground truths
         predictions = torch.FloatTensor().to(self.device)
         ground_truth = torch.FloatTensor().to(self.device)
 
         with torch.no_grad():
-            for batch, (images, labels) in enumerate(self.valid_loader):
+            for batch, (images, labels) in enumerate(self.val_loader):
                 # move inputs to device
                 images = images.to(self.device)
                 labels = labels.to(self.device)
@@ -185,96 +242,63 @@ class Trainer:
                 predictions = torch.cat((predictions, output), 0)
 
                 # update validation loss after each batch
-                valid_loss += loss.item()
-        auc = multi_label_auroc(ground_truth, predictions, average='micro')
-        print(f'Validation loss at epoch {self.current_epoch+1}: {valid_loss/len(self.valid_loader)}')
-        print(f'Micro-averaged AUC at epoch {self.current_epoch+1}: {auc}')
+                self.val_scores['loss'] += loss.item()
 
-        if self.write_summary and self.writer is not None:
-            self.writer.add_scalar('Loss/val', valid_loss/len(self.valid_loader),
-                                   (self.current_epoch+1)*len(self.train_loader))
-            self.writer.add_scalar('AUC/val', auc, (self.current_epoch+1)*len(self.train_loader))
+        # average loss
+        self.val_scores['loss'] /= len(self.val_loader)
+        # update metrics
+        for metric in self.metrics.keys()[1:]:
+            self.val_scores[metric] = self.metrics[metric](predictions, ground_truth)
+
+        # Logging
+        print(f'Validation scores at {self.current_epoch + 1}')
+        for metric in self.val_scores.keys():
+            score = self.val_scores[metric]
+            print(f"{metric.capitalize()}: {score:.4f}")
+            if self.logger is not None:
+                step = (self.current_epoch + 1) * len(self.train_loader)
+                self.logger.add_scalar(f"{metric.capitalize()}/val", score, step)
 
         # Clear memory
         del images, labels, loss
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-        # return average loss of val set and average auroc score
-        return valid_loss/len(self.valid_loader), auc
-
-    def train(self, base_path: str, model_name_base: str, log_path_name: str = "logs"):
-
-        # set up path
-        experiment_path = os.path.join(base_path, model_name_base)
-
+    def train(self):
         # set seed
         torch.manual_seed(self.seed)
 
-        print(f'Starting training at path {experiment_path}.')
-
-        # create experiment_path
-        if not os.path.isdir(experiment_path):
-            print(f"{experiment_path} does not exist. Creating directory.")
-            os.mkdir(experiment_path)
-
-        # init best score depending on score criterion
-        if self.use_auc_on_val:
-            print("AUC picked as val improvement score.")
-            mode = "max"
-            self.best_score = 0
-            self.current_score = 0
-        else:
-            print("Loss picked as val improvement score.")
-            mode = "min"
-            self.best_score = np.infty
-            self.current_score = np.infty
-
-        if self.lr_scheduler is not None:
-            print(f"Setting up scheduler {self.lr_scheduler}")
-            self.set_lr_scheduler(mode=mode)
+        print(f'Starting training at path {self.work_dir}.')
 
         # set model to device
         self.model.to(self.device)
 
-        # set up writer
-        if self.write_summary:
-            log_path = os.path.join(experiment_path, log_path_name)
-            print(f"Summary Writer enabled, setting up with log_path {log_path}")
-            self.set_summary_writer(location=log_path)
-
         for epoch in tqdm(range(self.n_epochs)):
-
             self.current_epoch = epoch
 
             # Training
             self.train_epoch()
 
             # Validation
-            val_loss, val_auc = self.validate()
-
-            if self.use_auc_on_val:
-                self.current_score = val_auc
-            else:
-                self.current_score = val_loss
+            self.validate()
+            self.current_score = self.val_scores[self.validation_metric]
 
             # update learning rate
-            if self.lr_scheduler == "plateau":
-                self.scheduler.step(self.current_score)
-            elif self.scheduler is not None:
-                self.scheduler.step()
+            if self.trainParams.lr_policy == "plateau":
+                self.lr_scheduler.step(self.current_score)
+            elif self.lr_scheduler is not None:
+                self.lr_scheduler.step()
 
             # save model on epoch
-            if self.save_on_epoch:
-                self.save_model_dict(os.path.join(experiment_path, model_name_base + f"_epoch_{epoch}.pth"))
+            if (self.current_epoch % self.save_epoch_freq) == 0:
+                self.save_model(save_best=False)
 
             # save best model
             improvement = self.validation_improvement()
             if improvement:
                 print(f'Model improved at epoch {epoch}, saving model.')
                 self.best_score = self.current_score
-                self.save_model_dict(os.path.join(experiment_path, model_name_base + f"_{epoch}_best.pth"))
-                self.save_model_full(os.path.join(experiment_path, model_name_base + "_best.pt"))
+                self.save_model(save_best=True)
 
             # early stopping
             if self.early_stopping:
@@ -282,7 +306,69 @@ class Trainer:
                     print(f"Early stopping at {epoch}")
                     break
 
-    def save_model_dict(self, model_path: str):
+    def print_params(self):
+        if self.trainParams.continue_train:
+            print(f"Continuing training from epoch {self.current_epoch}...")
+        else:
+            print(f"Starting training from epoch 0...")
+
+        print(f"Experiment name: {self.trainParams.exp_name}")
+        print(f"Work directory: {self.work_dir}")
+        print(f"Training parameters: {self.trainParams}")
+        print(f"Model parameters: {self.modelParams}")
+        print(f"Training dataset parameters: {self.dataTrainParams}")
+        print(f"Validation dataset parameters: {self.dataValParams}")
+        print(f"Augmentation parameters: {self.augmentParams}")
+
+    def save_params(self, addTestParams: bool = True,
+                    testDataParams: DatasetParams = None):
+        """
+        Saves all parameters in the work_dir
+        Args:
+            addTestParams: If true, creates entry testParams for easier testing
+            testDataParams (optional): Can be passed to automatically add parameters for test dataset
+
+        Returns:
+
+        """
+
+        # convert params to dicts
+        params = {'trainParams': self.trainParams.to_dict(),
+                  'modelParams': self.modelParams.to_dict(),
+                  'dataTrainParams': self.dataTrainParams.to_dict(),
+                  'dataValParams': self.dataValParams.to_dict(),
+                  'augmentParams': self.augmentParams.to_dict()}
+
+        if addTestParams:
+            testParams = {'exp_name': self.trainParams.exp_name,
+                          'work_dir': self.trainParams.work_dir,
+                          'metrics': self.trainParams.metrics}
+            params['testParams'] = testParams
+
+        if testDataParams is not None:
+            params['dataTestParams'] = testDataParams.to_dict()
+
+        with open(os.path.join(self.work_dir, 'params.yaml'), 'w') as f:
+            yaml.dump(params, f)
+
+    def save_model(self, save_best: bool = False):
+        if not save_best:
+            filename = f"{self.trainParams.exp_name}_{self.current_epoch}.pth"
+
+            # append filename to tracker and remove old checkpoints
+            self.saved_checkpoints.append(filename)
+            if len(self.saved_checkpoints) > self.trainParams.max_keep_ckpts:
+                oldest_checkpoint = self.saved_checkpoints.pop(0)
+                os.remove(os.path.join(self.work_dir, oldest_checkpoint))
+        else:
+            filename = f"{self.trainParams.exp_name}_{self.current_epoch}_best.pth"
+            # remove previous best checkpoint
+            for f in os.listdir(self.work_dir):
+                if f.endswith('.pth') and 'best' in f:
+                    os.remove(os.path.join(self.work_dir, f))
+
+        save_path = os.path.join(self.work_dir, filename)
+
         torch.save({"model": self.model.state_dict(),
                     "modelParams": self.modelParams,
                     "optimizer": self.optimizer.state_dict(),
@@ -290,18 +376,24 @@ class Trainer:
                     "validation_metric": self.validation_metric,
                     "validation_metric_mode": self.validation_metric_mode,
                     "score": self.current_score,
-                    "best_score": self.best_score}, model_path)
+                    "best_score": self.best_score}, save_path)
 
-    def save_model_full(self, model_path: str):
-        torch.save(self.model, model_path)
+    def load_model(self):
+        # find the latest checkpoint in the work_dir that does not contain 'best' in the name
+        checkpoints = [f for f in os.listdir(self.trainParams.work_dir) if f.endswith('.pth') and 'best' not in f]
+        if not checkpoints:
+            raise FileNotFoundError("No checkpoint found in %s" % self.trainParams.work_dir)
 
-    def load_model_dict(self, load_path: str):
-        load_dict = torch.load(load_path)
-        self.modelParams = load_dict["modelParams"]
+        checkpoints.sort()
+        load_path = os.path.join(self.trainParams.work_dir, checkpoints[-1])
+
+        loaded_dict = torch.load(load_path)
+
+        self.modelParams = loaded_dict["modelParams"]
         self.model = load_model(self.modelParams)
-        self.optimizer.load_state_dict(load_dict["optimizer"])
-        self.current_epoch = load_dict["epoch"]
-        self.best_score = load_dict["best_score"]
-        self.current_score = load_dict["score"]
-        self.validation_metric = load_dict["validation_metric"]
-        self.validation_metric_mode = load_dict["validation_metric_mode"]
+        self.optimizer.load_state_dict(loaded_dict["optimizer"])
+        self.current_epoch = loaded_dict["epoch"]
+        self.best_score = loaded_dict["best_score"]
+        self.current_score = loaded_dict["score"]
+        self.validation_metric = loaded_dict["validation_metric"]
+        self.validation_metric_mode = loaded_dict["validation_metric_mode"]
