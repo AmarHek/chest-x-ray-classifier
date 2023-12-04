@@ -1,18 +1,40 @@
-from typing import Union
+from typing import List
 
 import numpy as np
 import torch
 from sklearn.metrics import roc_auc_score, precision_score, recall_score, f1_score
+import torchmetrics as tm
 
 
-def tensor_to_numpy(tensor: Union[torch.Tensor, np.array]):
-    if type(tensor) == torch.Tensor:
+def load_metrics(metrics: List[str],
+                 num_classes: int,
+                 task):
+    metrics_selector = {
+        "auc": tm.AUROC(num_classes=num_classes, task=task),
+        "prec": tm.Precision(num_classes=num_classes, task=task),
+        "rec": tm.Recall(num_classes=num_classes, task=task),
+        "f1": tm.F1Score(num_classes=num_classes, task=task),
+    }
+
+    metrics_dict = {}
+    for metric in metrics:
+        metric = metric.lower()
+        if metric not in metrics_selector.keys():
+            raise ValueError(f"Metric {metric} not implemented! "
+                             f"Available metrics are: {metrics_selector.keys()}")
+        else:
+            metrics_dict[metric] = metrics_selector[metric]
+
+    return metrics_dict
+
+def tensor_to_numpy(tensor: torch.Tensor | np.array):
+    if isinstance(tensor, torch.Tensor):
         return tensor.to("cpu").numpy()
     else:
         return tensor
 
 
-def multi_label_auroc(y_gt, y_pred, average=None):
+def multi_label_auroc(y_gt: np.array, y_pred: np.array, average=None):
     auroc = []
     gt_np = tensor_to_numpy(y_gt)
     pred_np = tensor_to_numpy(y_pred)
@@ -79,19 +101,3 @@ def f1(y_gt, y_pred, threshold=0.5, average=None):
         return fone
     else:
         return f1_score(gt_np, pred_np, average=average)
-
-
-metrics_selector = {
-    "auroc": multi_label_auroc,
-    "precision": precision,
-    "recall": recall,
-    "f1": f1
-}
-
-
-def metric_is_valid(metric: str):
-    if metric in metrics_selector.keys():
-        return True
-    else:
-        print("WARNING: Metric %s not in list of metrics, skipping." % metric)
-        return False
