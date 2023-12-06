@@ -8,12 +8,13 @@ import torchmetrics as tm
 
 def load_metrics(metrics: List[str],
                  num_classes: int,
-                 task):
+                 task,
+                 threshold: float = 0.5):
     metrics_selector = {
         "auc": tm.AUROC(num_labels=num_classes, task=task),
-        "prec": tm.Precision(num_labels=num_classes, task=task),
-        "rec": tm.Recall(num_labels=num_classes, task=task),
-        "f1": tm.F1Score(num_labels=num_classes, task=task),
+        "prec": tm.Precision(num_labels=num_classes, task=task, threshold=threshold),
+        "rec": tm.Recall(num_labels=num_classes, task=task, threshold=threshold),
+        "f1": tm.F1Score(num_labels=num_classes, task=task, threshold=threshold),
     }
 
     metrics_dict = {}

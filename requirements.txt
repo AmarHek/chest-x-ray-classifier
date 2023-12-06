@@ -5,6 +5,7 @@ torchmetrics
 tensorboard
 libauc
 numpy
+pyyaml
 tqdm
 opencv-python
 pandas

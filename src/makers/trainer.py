@@ -81,6 +81,7 @@ class Trainer:
                                        **self.trainParams.to_dict())
         self.metrics = load_metrics(trainParams.metrics,
                                     num_classes=self.modelParams.num_classes,
+                                    threshold=trainParams.threshold,
                                     task='multilabel')
         self.train_scores = {'loss': 0,
                              **{metric: 0 for metric in trainParams.metrics}}
@@ -127,9 +128,6 @@ class Trainer:
                                           mode=self.validation_metric_mode,
                                           epoch_count=self.current_epoch,
                                           **self.trainParams.to_dict())
-        # only required for plateau scheduler
-        if self.trainParams.lr_policy == "plateau":
-            self.plateau = True
 
         if self.trainParams.continue_train:
             self.load_model()
@@ -209,6 +207,7 @@ class Trainer:
             if (batch + 1) % self.update_steps == 0:
                 print(f'[{self.current_epoch + 1}, {batch + 1:5d}]:')
                 for metric in self.train_scores.keys():
+                    print(metric)
                     score = self.train_scores[metric] / (batch + 1)
                     print(f"{metric.capitalize()}: {score:.4f}")
                     if self.logger is not None:
@@ -327,11 +326,11 @@ class Trainer:
 
         print(f"Experiment name: {self.trainParams.exp_name}")
         print(f"Work directory: {self.work_dir}")
-        print(f"Training parameters: {self.trainParams}")
-        print(f"Model parameters: {self.modelParams}")
-        print(f"Training dataset parameters: {self.dataTrainParams}")
-        print(f"Validation dataset parameters: {self.dataValParams}")
-        print(f"Augmentation parameters: {self.augmentParams}")
+        self.trainParams.print_params()
+        self.modelParams.print_params()
+        self.dataTrainParams.print_params()
+        self.dataValParams.print_params()
+        self.augmentParams.print_params()
 
     def save_params(self, addTestParams: bool = True,
                     testDataParams: DatasetParams = None):

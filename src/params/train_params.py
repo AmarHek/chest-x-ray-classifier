@@ -35,6 +35,7 @@ class TrainParams(BaseParams):
     learning_rate: float = 0.0003
     # which metrics to track during training
     metrics: List[str] = field(default_factory=lambda: ["auc", "prec", "rec", "f1"])
+    threshold: float = 0.5
 
     # validation parameters
     validation_metric: str = "loss"  # which metric to use for saving best model
