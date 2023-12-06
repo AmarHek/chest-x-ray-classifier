@@ -12,6 +12,8 @@
 
 # files
 /data
+/experiments
+/work_dirs
 
 # setup
 /build
