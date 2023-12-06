@@ -1,4 +1,4 @@
-from chexpert import CheXpert
+from .chexpert import CheXpert
 
 
 def load_dataset(datasetParams, augmentationParams):

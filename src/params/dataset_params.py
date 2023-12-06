@@ -24,7 +24,7 @@ class DatasetParams(BaseParams):
     shuffle: bool = True
 
     # label smoothing
-    lsr_method = "dam"  # [dam | pham | None]
+    lsr_method: str = "dam"  # [dam | pham | None]
 
     # lsr dam params
     lsr_one_cols: List[str] = field(default_factory=lambda: [])
@@ -59,6 +59,11 @@ class CheXpertParams(DatasetParams):
     # lsr pham params
     lsr_lower: float = 0.55
     lsr_upper: float = 0.85
+
+
+dataset_params_selector = {
+    "chexpert": CheXpertParams
+}
 
 
 @dataclass

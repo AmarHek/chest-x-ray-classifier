@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 import numpy as np
 import torch
@@ -10,10 +10,10 @@ def load_metrics(metrics: List[str],
                  num_classes: int,
                  task):
     metrics_selector = {
-        "auc": tm.AUROC(num_classes=num_classes, task=task),
-        "prec": tm.Precision(num_classes=num_classes, task=task),
-        "rec": tm.Recall(num_classes=num_classes, task=task),
-        "f1": tm.F1Score(num_classes=num_classes, task=task),
+        "auc": tm.AUROC(num_labels=num_classes, task=task),
+        "prec": tm.Precision(num_labels=num_classes, task=task),
+        "rec": tm.Recall(num_labels=num_classes, task=task),
+        "f1": tm.F1Score(num_labels=num_classes, task=task),
     }
 
     metrics_dict = {}
@@ -27,7 +27,8 @@ def load_metrics(metrics: List[str],
 
     return metrics_dict
 
-def tensor_to_numpy(tensor: torch.Tensor | np.array):
+
+def tensor_to_numpy(tensor: Union[torch.Tensor, np.array]):
     if isinstance(tensor, torch.Tensor):
         return tensor.to("cpu").numpy()
     else:

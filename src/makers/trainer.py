@@ -20,10 +20,16 @@ class Trainer:
     def __init__(self,
                  trainParams: TrainParams,
                  modelParams,
-                 dataTrainParams: DatasetParams,
-                 dataValParams: DatasetParams,
+                 dataTrainParams,
+                 dataValParams,
                  augmentParams: AugmentationParams
                  ):
+
+        # some assertions
+        assert dataTrainParams.train_labels == dataValParams.train_labels\
+            , "Train and validation labels do not match!"
+        assert modelParams.num_classes == len(dataTrainParams.train_labels)\
+            , "Number of classes does not match number of labels!"
 
         # track params
         self.trainParams = trainParams
@@ -70,10 +76,8 @@ class Trainer:
         # losses, metrics, optimizer, etc.
         self.learning_rate = trainParams.learning_rate
         self.loss = get_loss(**trainParams.to_dict())
-        self.optimizer = get_optimizer(trainParams.optimizer,
-                                       learning_rate=self.learning_rate,
-                                       model=self.model,
-                                       loss=self.loss,
+        self.optimizer = get_optimizer(model=self.model,
+                                       loss_fn=self.loss,
                                        **self.trainParams.to_dict())
         self.metrics = load_metrics(trainParams.metrics,
                                     num_classes=self.modelParams.num_classes,
@@ -97,7 +101,8 @@ class Trainer:
             self.logger = None
 
         # validation
-        assert trainParams.validation_metric in trainParams.metrics, "Validation metric not in metrics!"
+        if trainParams.validation_metric != "loss":
+            assert trainParams.validation_metric in trainParams.metrics, "Validation metric not in metrics!"
         self.validation_metric = trainParams.validation_metric
         self.validation_metric_mode = trainParams.validation_metric_mode
 
@@ -118,7 +123,7 @@ class Trainer:
 
         # learning rate schedules
         self.lr_scheduler = get_scheduler(self.trainParams.lr_policy,
-                                          self.optimizer,
+                                          optimizer_fn=self.optimizer,
                                           mode=self.validation_metric_mode,
                                           epoch_count=self.current_epoch,
                                           **self.trainParams.to_dict())
@@ -192,9 +197,13 @@ class Trainer:
             self.optimizer.step()
 
             # Update metrics after each batch
-            self.train_scores['loss'] += loss.item()
-            for metric in self.metrics.keys()[1:]:
-                self.train_scores[metric] += self.metrics[metric](pred, labels)
+            for metric in self.metrics.keys():
+                if metric == "loss":
+                    # average loss
+                    self.train_scores[metric] += loss.item()
+                else:
+                    # compute remaining metrics
+                    self.train_scores[metric] += self.metrics[metric](pred, labels)
 
             # Logging
             if (batch + 1) % self.update_steps == 0:
@@ -244,11 +253,15 @@ class Trainer:
                 # update validation loss after each batch
                 self.val_scores['loss'] += loss.item()
 
-        # average loss
-        self.val_scores['loss'] /= len(self.val_loader)
+
         # update metrics
-        for metric in self.metrics.keys()[1:]:
-            self.val_scores[metric] = self.metrics[metric](predictions, ground_truth)
+        for metric in self.metrics.keys():
+            if metric == "loss":
+                # average loss
+                self.val_scores[metric] /= len(self.val_loader)
+            else:
+                # compute remaining metrics
+                self.val_scores[metric] = self.metrics[metric](predictions, ground_truth)
 
         # Logging
         print(f'Validation scores at {self.current_epoch + 1}')

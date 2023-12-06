@@ -32,7 +32,7 @@ class TrainParams(BaseParams):
     # loss and optimizer
     loss: str = 'bce'
     optimizer: str = 'adam'
-    learning_rate: float = 0.0002
+    learning_rate: float = 0.0003
     # which metrics to track during training
     metrics: List[str] = field(default_factory=lambda: ["auc", "prec", "rec", "f1"])
 

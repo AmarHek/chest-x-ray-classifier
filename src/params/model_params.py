@@ -6,11 +6,12 @@ from params.base_params import BaseParams
 @dataclass
 class ModelParams(BaseParams):
     name = "Model Parameters"
-    model_type = "pretrained"  # [pretrained | custom]
+    model_type: str = "base"  # [pretrained | custom]
 
 
 @dataclass
 class PretrainedModelParams(ModelParams):
+    name = "Pretrained Model Parameters"
     backbone: str = "densenet121"
     weights: str = "DEFAULT"  # [DEFAULT | IMAGENET1K_V1 | IMAGENET1K_V2]
 
@@ -35,5 +36,12 @@ class PretrainedModelParams(ModelParams):
 
 @dataclass
 class CustomModelParams(ModelParams):
+    name = "Custom Model Parameters"
     model_name: str = "custom"
     # Custom Model Parameters can be added here
+
+
+model_param_selector = {
+    "pretrained": PretrainedModelParams,
+    "custom": CustomModelParams
+}

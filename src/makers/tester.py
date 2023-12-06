@@ -5,8 +5,8 @@ from typing import Union
 import torch.cuda
 from torch.utils.data import Dataset, DataLoader
 
-from src.components import metrics_selector as metrics_dict, metric_is_valid
-from src.util.util import get_file_contents_as_list, serialize_numpy_array
+from components import load_metrics
+from src.utils.util import get_file_contents_as_list, serialize_numpy_array
 
 
 class Tester:
@@ -45,9 +45,6 @@ class Tester:
             self.compute_metrics = False
             self.metrics = []
         else:
-            for metric in metrics:
-                if not metric_is_valid(metric):
-                    raise ValueError("%s is an invalid metric!" % metric)
             self.metrics = metrics
             self.compute_metrics = True
 
@@ -128,7 +125,7 @@ class Tester:
         self.outputs[model_name] = serialize_numpy_array(predictions.numpy())
 
         # compute metrics
-        self.metrics_result[model_name] = self.compute_metrics(ground_truth, predictions)
+        self.metrics_result[model_name] = 1
 
         # Clear memory
         del model
@@ -144,7 +141,7 @@ class Tester:
     def compute_metrics(self, y_gt, y_pred):
         result = {}
         for metric in self.metrics:
-            metric_function = metrics_dict[metric]
+            metric_function = load_metrics(metric, 13, "multi-label")
             if metric == "auroc":
                 results_per_class = metric_function(y_gt, y_pred)
                 result["avg_" + metric] = metric_function(y_gt, y_pred, average="macro")

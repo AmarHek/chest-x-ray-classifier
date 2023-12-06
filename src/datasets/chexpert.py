@@ -6,8 +6,8 @@ import pandas as pd
 import os
 
 from params.dataset_params import CheXpertParams, AugmentationParams
-from preprocessing import means, stds
-from util.util import check_files
+from .preprocessing import means, stds
+from utils.util import check_files
 
 
 class CheXpert(Dataset):
@@ -18,8 +18,8 @@ class CheXpert(Dataset):
                  seed: int = 42069):
 
         # Assertions
-        assert os.path.isdir(params.image_root_path), 'Need a valid path for the images!'
-        assert os.path.exists(params.csv_path), 'Need a valid path for the csv!'
+        assert os.path.isdir(params.image_root_path), f'{params.image_root_path} is not a valid path!'
+        assert os.path.exists(params.csv_path), f'{params.csv_path} does not exist!'
         assert params.mode in ['train', 'val', 'test'], 'Invalid mode!'
         assert augmentationParams is not None if params.augment else True, 'Need augmentation params!'
 
@@ -65,7 +65,7 @@ class CheXpert(Dataset):
             self._upsample_images(params.upsample_labels)
 
         # label smoothing
-        self._apply_lsr(params.lsr_method, **params.to_dict())
+        self._apply_lsr(**params.to_dict())
 
         # shuffle data
         if params.shuffle:

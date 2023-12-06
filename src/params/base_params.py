@@ -3,7 +3,6 @@ from pprint import pprint
 from typing import Dict, List
 
 
-@dataclass
 class BaseParams:
     name: str = "BaseParams"
 

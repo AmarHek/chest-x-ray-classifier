@@ -28,12 +28,12 @@ modelParams:
   classifier_function: "sigmoid"
   num_classes: 13
   head: "csra"
-  num_heads: 4,
+  num_heads: 4
   lam: 0.1
 trainDataParams:
   dataset: "chexpert"
-  image_root_path: '/scratch/hekalo/Datasets/'
-  csv_path: '/scratch/hekalo/Datasets/CheXpert-v1.0-small/train.csv'
+  image_root_path: 'F:/'
+  csv_path: 'F:/CheXpert-v1.0/train.csv'
   image_size: [320, 320]
   image_format: 'jpeg'
   normalization: 'imagenet'
@@ -49,8 +49,8 @@ trainDataParams:
                  "Pneumothorax", "Pleural Other", "Fracture", "Support Devices"]
 valDataParams:
   dataset: "chexpert"
-  image_root_path: '/scratch/hekalo/Datasets/'
-  csv_path: '/scratch/hekalo/Datasets/CheXpert-v1.0-small/valid.csv'
+  image_root_path: 'F:/'
+  csv_path: 'F:/CheXpert-v1.0/valid.csv'
   image_size: [320, 320]
   image_format: 'jpeg'
   normalization: 'imagenet'

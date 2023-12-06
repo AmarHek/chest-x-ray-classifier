@@ -44,7 +44,7 @@ def get_optimizer(optimizer, learning_rate, model, **kwargs):
                            lr=learning_rate)
     elif optimizer == "pesg":
         return aucoptim.PESG(model.parameters(),
-                             loss_fn=kwargs['loss'],
+                             loss_fn=kwargs['loss_fn'],
                              lr=learning_rate,
                              momentum=0.9,
                              epoch_decay=0.003,
