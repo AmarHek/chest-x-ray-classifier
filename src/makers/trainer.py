@@ -167,6 +167,31 @@ class Trainer:
 
         return condition
 
+    def log(self, mode: str = "train", batch: int = None):
+        if mode == "train":
+            scores = self.train_scores
+            divider = (batch + 1)
+            log_output = f'[Epoch {self.current_epoch + 1}, Batch {batch + 1:5d}]: '
+            step = (self.current_epoch + 1) * (batch + 1)
+        elif mode == "val":
+            scores = self.val_scores
+            divider = len(self.val_loader)
+            log_output = f'Validation Scores at epoch {self.current_epoch + 1}: '
+            step = (self.current_epoch + 1) * len(self.train_loader)
+        else:
+            raise ValueError("Invalid mode!")
+
+        for metric in scores.keys():
+            # average loss and metrics at current batch
+            score = scores[metric] / divider
+            log_output += f"{metric.capitalize()}: {score:.4f}" + " | "
+            if self.logger is not None:
+                self.logger.add_scalar(f"{metric.capitalize()}/{mode}", score, step)
+
+        # remove final " | " before printing
+        log_output = log_output[:-3]
+        print(log_output)
+
     def train_epoch(self):
         # training for a single epoch
 
@@ -204,15 +229,7 @@ class Trainer:
 
             # Logging
             if (batch + 1) % self.update_steps == 0:
-                print(f'[{self.current_epoch + 1}, {batch + 1:5d}]:')
-                for metric in self.train_scores.keys():
-                    print(metric)
-                    score = self.train_scores[metric] / (batch + 1)
-                    print(f"{metric.capitalize()}: {score:.4f}")
-                    if self.logger is not None:
-                        full_step = (self.current_epoch + 1) * (batch + 1)
-                        self.logger.add_scalar(f"{metric.capitalize()}/train", score / (batch + 1),
-                                               full_step)
+                self.log(mode="train", batch=batch)
 
         # clear memory
         del images, labels, loss
@@ -259,13 +276,7 @@ class Trainer:
             self.val_scores[metric] = self.metrics[metric](predictions, ground_truth.int())
 
         # Logging
-        print(f'Validation scores at {self.current_epoch + 1}')
-        for metric in self.val_scores.keys():
-            score = self.val_scores[metric]
-            print(f"{metric.capitalize()}: {score:.4f}")
-            if self.logger is not None:
-                step = (self.current_epoch + 1) * len(self.train_loader)
-                self.logger.add_scalar(f"{metric.capitalize()}/val", score, step)
+        self.log(mode="val")
 
         # Clear memory
         del images, labels, loss
