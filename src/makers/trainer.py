@@ -194,14 +194,13 @@ class Trainer:
             loss.backward()
             self.optimizer.step()
 
+            # track loss after each batch
+            self.train_scores["loss"] += loss.item()
+
             # Update metrics after each batch
             for metric in self.metrics.keys():
-                if metric == "loss":
-                    # average loss
-                    self.train_scores[metric] += loss.item()
-                else:
-                    # compute remaining metrics
-                    self.train_scores[metric] += self.metrics[metric](pred, labels)
+                # compute remaining metrics
+                self.train_scores[metric] += self.metrics[metric](pred, labels.int())
 
             # Logging
             if (batch + 1) % self.update_steps == 0:
@@ -252,15 +251,12 @@ class Trainer:
                 # update validation loss after each batch
                 self.val_scores['loss'] += loss.item()
 
-
+        # average loss
+        self.val_scores['loss'] /= len(self.val_loader)
         # update metrics
         for metric in self.metrics.keys():
-            if metric == "loss":
-                # average loss
-                self.val_scores[metric] /= len(self.val_loader)
-            else:
-                # compute remaining metrics
-                self.val_scores[metric] = self.metrics[metric](predictions, ground_truth)
+            # compute remaining metrics
+            self.val_scores[metric] = self.metrics[metric](predictions, ground_truth.int())
 
         # Logging
         print(f'Validation scores at {self.current_epoch + 1}')
