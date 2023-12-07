@@ -201,9 +201,7 @@ class Trainer:
         for metric in self.train_scores.keys():
             self.train_scores[metric] = 0
 
-        print(f'Training at epoch {self.current_epoch}...')
-
-        for batch, (images, labels) in enumerate(self.train_loader):
+        for batch, (images, labels) in tqdm(enumerate(self.train_loader), total=len(self.train_loader)):
             # move to device
             images = images.to(self.device)
             labels = labels.to(self.device)
@@ -292,10 +290,11 @@ class Trainer:
         # set model to device
         self.model.to(self.device)
 
-        for epoch in tqdm(range(self.n_epochs)):
+        for epoch in range(self.n_epochs):
             self.current_epoch = epoch
 
             # Training
+            print(f'Training at epoch {epoch + 1}/{self.n_epochs}...')
             self.train_epoch()
 
             # Validation
