@@ -2,6 +2,7 @@
 
 # IDEs and editors
 /.idea
+.idea
 
 # pycache
 /__pycache__
