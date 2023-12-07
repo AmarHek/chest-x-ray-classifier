@@ -33,7 +33,7 @@ modelParams:
 trainDataParams:
   dataset: "chexpert"
   image_root_path: 'F:/'
-  csv_path: 'F:/CheXpert-v1.0/train.csv'
+  csv_path: 'F:/CheXpert-v1.0-small/debug_train.csv'
   image_size: [320, 320]
   image_format: 'jpeg'
   normalization: 'imagenet'
@@ -50,7 +50,7 @@ trainDataParams:
 valDataParams:
   dataset: "chexpert"
   image_root_path: 'F:/'
-  csv_path: 'F:/CheXpert-v1.0/valid.csv'
+  csv_path: 'F:/CheXpert-v1.0-small/valid.csv'
   image_size: [320, 320]
   image_format: 'jpeg'
   normalization: 'imagenet'
