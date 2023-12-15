@@ -54,7 +54,7 @@ class CheXpertParams(DatasetParams):
     lsr_one_cols: List[str] = field(default_factory=lambda:
                                     ['Edema', 'Atelectasis'])
     lsr_zero_cols: List[str] = field(default_factory=lambda:
-                                    ['Cardiomegaly', 'Consolidation', 'Pleural Effusion'])
+                                     ['Cardiomegaly', 'Consolidation', 'Pleural Effusion'])
 
     # lsr pham params
     lsr_lower: float = 0.55
