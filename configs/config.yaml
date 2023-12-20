@@ -27,7 +27,7 @@ modelParams:
   dropout: 0.0
   classifier_function: "sigmoid"
   num_classes: 13
-  head: "csra"
+  head: "linear"
   num_heads: 4,
   lam: 0.1
 trainDataParams:
