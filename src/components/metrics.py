@@ -11,10 +11,20 @@ def load_metrics(metrics: List[str],
                  task,
                  threshold: float = 0.5):
     metrics_selector = {
-        "auc": tm.AUROC(num_labels=num_classes, task=task),
-        "prec": tm.Precision(num_labels=num_classes, task=task, threshold=threshold),
-        "rec": tm.Recall(num_labels=num_classes, task=task, threshold=threshold),
-        "f1": tm.F1Score(num_labels=num_classes, task=task, threshold=threshold),
+        "auc": tm.AUROC(num_labels=num_classes, task=task, average='macro'),
+        "auc_class": tm.AUROC(num_labels=num_classes, task=task, average=None),
+        "prec": tm.Precision(num_labels=num_classes, task=task, threshold=threshold,
+                             average='macro'),
+        "prec_class": tm.Precision(num_labels=num_classes, task=task, threshold=threshold,
+                                   average=None),
+        "rec": tm.Recall(num_labels=num_classes, task=task, threshold=threshold,
+                         average='macro'),
+        "rec_class": tm.Recall(num_labels=num_classes, task=task, threshold=threshold,
+                               average=None),
+        "f1": tm.F1Score(num_labels=num_classes, task=task, threshold=threshold,
+                         average='macro'),
+        "f1_class": tm.F1Score(num_labels=num_classes, task=task, threshold=threshold,
+                               average=None),
     }
 
     metrics_dict = {}
