@@ -9,7 +9,8 @@ import torchmetrics as tm
 def load_metrics(metrics: List[str],
                  num_classes: int,
                  task,
-                 threshold: float = 0.5):
+                 threshold: float = 0.5,
+                 device: str = "cpu"):
     metrics_selector = {
         "auc": tm.AUROC(num_labels=num_classes, task=task, average='macro'),
         "auc_class": tm.AUROC(num_labels=num_classes, task=task, average=None),
@@ -34,7 +35,7 @@ def load_metrics(metrics: List[str],
             raise ValueError(f"Metric {metric} not implemented! "
                              f"Available metrics are: {metrics_selector.keys()}")
         else:
-            metrics_dict[metric] = metrics_selector[metric]
+            metrics_dict[metric] = metrics_selector[metric].to(device)
 
     return metrics_dict
 

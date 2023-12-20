@@ -46,7 +46,6 @@ class Trainer:
         # update experiment name
         self.trainParams.exp_name = os.path.basename(self.work_dir)
         # create the work_dir
-        # TODO: check if work_dir exists
         os.makedirs(self.work_dir)
 
         # seed
@@ -59,7 +58,6 @@ class Trainer:
         # Model Loading
         self.model = load_model(modelParams)
 
-        # TODO: auslagern
         # change resolution in dataParams for some pretrained models (currently only ViT)
         if modelParams.name == "ViT":
             self.dataTrainParams.image_size = (384, 384)
@@ -84,23 +82,9 @@ class Trainer:
                                     num_classes=self.modelParams.num_classes,
                                     threshold=trainParams.threshold,
                                     task='multilabel',
-                                    average='macro')
-        self.train_scores = {'loss': 0,
-                             **{metric: 0 for metric in trainParams.metrics}}
-        self.val_scores = {'loss': 0,
-                           **{metric: 0 for metric in trainParams.metrics}}
+                                    device=self.device)
 
-        # add class-based metrics if specified in trainParams
-        if self.trainParams.per_class:
-            metrics_per_class = load_metrics(trainParams.metrics,
-                                             num_classes=self.modelParams.num_classes,
-                                             threshold=trainParams.threshold,
-                                             task='multilabel',
-                                             average=None)
-            for metric in metrics_per_class.keys():
-                self.metrics[metric + "_per_class"] = metrics_per_class[metric]
-                self.train_scores[metric + "_per_class"] = np.zeros(self.modelParams.num_classes)
-                self.val_scores[metric + "_per_class"] = np.zeros(self.modelParams.num_classes)
+        self.train_scores, self.val_scores = self.init_scores()
 
         # saving and logging
         self.update_steps = trainParams.update_steps
@@ -181,9 +165,29 @@ class Trainer:
 
         return condition
 
-    def update_metrics(self, pred, labels, mode: str = "train"):
+    def init_scores(self):
+        train_scores = {'loss': 0}
+        val_scores = {'loss': 0}
+        for metric in self.metrics.keys():
+            if metric.endswith("_class"):
+                train_scores[metric] = torch.zeros(self.modelParams.num_classes).to(self.device)
+                val_scores[metric] = torch.zeros(self.modelParams.num_classes).to(self.device)
+            else:
+                train_scores[metric] = 0
+                val_scores[metric] = 0
+        return train_scores, val_scores
+
+    def update_scores(self, pred, labels, mode: str = "train"):
         if mode == "train":
-            pass
+            for metric in self.metrics.keys():
+                if metric.endswith("_class"):
+                    # compute per class metrics
+                    old_score = self.train_scores[metric]
+                    new_score = self.metrics[metric](pred, labels.int())
+                    self.train_scores[metric] = torch.add(old_score, new_score)
+                else:
+                    # compute remaining metrics
+                    self.train_scores[metric] += self.metrics[metric](pred, labels.int())
         elif mode == "val":
             for metric in self.metrics.keys():
                 # compute remaining metrics
@@ -192,17 +196,17 @@ class Trainer:
         else:
             raise ValueError("Invalid mode!")
 
-    def reset_metrics(self, mode: str = "train"):
+    def reset_scores(self, mode: str = "train"):
         if mode == "train":
             for metric in self.train_scores.keys():
-                if "per_class" in metric:
-                    self.train_scores[metric] = np.zeros(self.modelParams.num_classes)
+                if metric.endswith("_class"):
+                    self.train_scores[metric] = torch.zeros(self.modelParams.num_classes).to(self.device)
                 else:
                     self.train_scores[metric] = 0
         elif mode == "val":
             for metric in self.val_scores.keys():
-                if "per_class" in metric:
-                    self.val_scores[metric] = np.zeros(self.modelParams.num_classes)
+                if metric.endswith("_class"):
+                    self.val_scores[metric] = torch.zeros(self.modelParams.num_classes).to(self.device)
                 else:
                     self.val_scores[metric] = 0
         else:
@@ -225,7 +229,7 @@ class Trainer:
         for metric in scores.keys():
             # average loss and metrics at current batch
             score = scores[metric] / divider
-            if "per_class" in metric:
+            if metric.endswith("_class"):
                 # No verbosity for class metrics, only logging
                 if self.logger is not None:
                     for label in self.train_set.train_labels:
@@ -246,7 +250,7 @@ class Trainer:
         # switch model to training mode
         self.model.train()
         # reset running metrics
-        self.reset_metrics(mode="train")
+        self.reset_scores(mode="train")
 
         for batch, (images, labels) in tqdm(enumerate(self.train_loader), total=len(self.train_loader)):
             # move to device
@@ -268,9 +272,7 @@ class Trainer:
             self.train_scores["loss"] += loss.item()
 
             # Update metrics after each batch
-            for metric in self.metrics.keys():
-                # compute remaining metrics
-                self.train_scores[metric] += self.metrics[metric](pred, labels.int())
+            self.update_scores(pred, labels, mode="train")
 
             # Logging
             if (batch + 1) % self.update_steps == 0:
@@ -289,7 +291,7 @@ class Trainer:
         self.model.eval()
 
         # reset loss and metrics
-        self.reset_metrics(mode="val")
+        self.reset_scores(mode="val")
 
         # tensors to collect predictions and ground truths
         predictions = torch.FloatTensor().to(self.device)
@@ -314,10 +316,9 @@ class Trainer:
 
         # average loss
         self.val_scores['loss'] /= len(self.val_loader)
+
         # update metrics
-        for metric in self.metrics.keys():
-            # compute remaining metrics
-            self.val_scores[metric] = self.metrics[metric](predictions, ground_truth.int())
+        self.update_scores(predictions, ground_truth, mode="val")
 
         # Logging
         self.log(mode="val")

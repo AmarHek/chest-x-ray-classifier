@@ -7,11 +7,11 @@ trainParams:
   n_epochs: 200
   save_epoch_freq: 1
   max_keep_ckpts: 3
-  batch_size: 32
+  batch_size: 4
   loss: "bce"
   optimizer: "adam"
   learning_rate: 0.0003
-  metrics: ["auc", "f1", "prec", "rec"]
+  metrics: ["auc", "f1", "prec", "rec", "auc_class", "f1_class", "prec_class", "rec_class"]
   validation_metric: "loss"
   validation_metric_mode: "min"
   validation_epoch_freq: 1
@@ -33,7 +33,7 @@ modelParams:
 trainDataParams:
   dataset: "chexpert"
   image_root_path: '/media/amar/Volume/'
-  csv_path: '/media/amar/Volume/CheXpert-v1.0/train.csv'
+  csv_path: '/media/amar/Volume/CheXpert-v1.0-small/debug_train.csv'
   image_size: [320, 320]
   image_format: 'jpeg'
   normalization: 'imagenet'
@@ -50,7 +50,7 @@ trainDataParams:
 valDataParams:
   dataset: "chexpert"
   image_root_path: '/media/amar/Volume/'
-  csv_path: '/media/amar/Volume/CheXpert-v1.0/valid.csv'
+  csv_path: '/media/amar/Volume/CheXpert-v1.0-small/valid.csv'
   image_size: [320, 320]
   image_format: 'jpeg'
   normalization: 'imagenet'
