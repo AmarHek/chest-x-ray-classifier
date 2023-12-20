@@ -32,6 +32,6 @@ if __name__ == "__main__":
 
         tester.test()
         tester.save_metrics("/scratch/hekalo/Evaluations/labels_chexpert/bce/metrics_%s.json" % cls)
-        tester.save_raw_results("/scratch/hekalo/Evaluations/labels_chexpert/bce/output_raw_%s.json" % cls)
+        tester.save_predictions("/scratch/hekalo/Evaluations/labels_chexpert/bce/output_raw_%s.json" % cls)
 
         del testSet, tester

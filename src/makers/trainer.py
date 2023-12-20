@@ -46,6 +46,7 @@ class Trainer:
         # update experiment name
         self.trainParams.exp_name = os.path.basename(self.work_dir)
         # create the work_dir
+        # TODO: check if work_dir exists
         os.makedirs(self.work_dir)
 
         # seed
@@ -82,11 +83,24 @@ class Trainer:
         self.metrics = load_metrics(trainParams.metrics,
                                     num_classes=self.modelParams.num_classes,
                                     threshold=trainParams.threshold,
-                                    task='multilabel')
+                                    task='multilabel',
+                                    average='macro')
         self.train_scores = {'loss': 0,
                              **{metric: 0 for metric in trainParams.metrics}}
         self.val_scores = {'loss': 0,
                            **{metric: 0 for metric in trainParams.metrics}}
+
+        # add class-based metrics if specified in trainParams
+        if self.trainParams.per_class:
+            metrics_per_class = load_metrics(trainParams.metrics,
+                                             num_classes=self.modelParams.num_classes,
+                                             threshold=trainParams.threshold,
+                                             task='multilabel',
+                                             average=None)
+            for metric in metrics_per_class.keys():
+                self.metrics[metric + "_per_class"] = metrics_per_class[metric]
+                self.train_scores[metric + "_per_class"] = np.zeros(self.modelParams.num_classes)
+                self.val_scores[metric + "_per_class"] = np.zeros(self.modelParams.num_classes)
 
         # saving and logging
         self.update_steps = trainParams.update_steps
@@ -167,6 +181,33 @@ class Trainer:
 
         return condition
 
+    def update_metrics(self, pred, labels, mode: str = "train"):
+        if mode == "train":
+            pass
+        elif mode == "val":
+            for metric in self.metrics.keys():
+                # compute remaining metrics
+                # no distinction necessary for val since we compute on entire dataset
+                self.val_scores[metric] = self.metrics[metric](pred, labels.int())
+        else:
+            raise ValueError("Invalid mode!")
+
+    def reset_metrics(self, mode: str = "train"):
+        if mode == "train":
+            for metric in self.train_scores.keys():
+                if "per_class" in metric:
+                    self.train_scores[metric] = np.zeros(self.modelParams.num_classes)
+                else:
+                    self.train_scores[metric] = 0
+        elif mode == "val":
+            for metric in self.val_scores.keys():
+                if "per_class" in metric:
+                    self.val_scores[metric] = np.zeros(self.modelParams.num_classes)
+                else:
+                    self.val_scores[metric] = 0
+        else:
+            raise ValueError("Invalid mode!")
+
     def log(self, mode: str = "train", batch: int = None):
         if mode == "train":
             scores = self.train_scores
@@ -184,9 +225,16 @@ class Trainer:
         for metric in scores.keys():
             # average loss and metrics at current batch
             score = scores[metric] / divider
-            log_output += f"{metric.capitalize()}: {score:.4f}" + " | "
-            if self.logger is not None:
-                self.logger.add_scalar(f"{metric.capitalize()}/{mode}", score, step)
+            if "per_class" in metric:
+                # No verbosity for class metrics, only logging
+                if self.logger is not None:
+                    for label in self.train_set.train_labels:
+                        self.logger.add_scalar(f"{metric.capitalize()}/{label}/{mode}", score, step)
+            else:
+                # average metrics are printed and logged
+                log_output += f"{metric.capitalize()}: {score:.4f}" + " | "
+                if self.logger is not None:
+                    self.logger.add_scalar(f"{metric.capitalize()}/{mode}", score, step)
 
         # remove final " | " before printing
         log_output = log_output[:-3]
@@ -198,8 +246,7 @@ class Trainer:
         # switch model to training mode
         self.model.train()
         # reset running metrics
-        for metric in self.train_scores.keys():
-            self.train_scores[metric] = 0
+        self.reset_metrics(mode="train")
 
         for batch, (images, labels) in tqdm(enumerate(self.train_loader), total=len(self.train_loader)):
             # move to device
@@ -242,8 +289,7 @@ class Trainer:
         self.model.eval()
 
         # reset loss and metrics
-        for metric in self.val_scores.keys():
-            self.val_scores[metric] = 0
+        self.reset_metrics(mode="val")
 
         # tensors to collect predictions and ground truths
         predictions = torch.FloatTensor().to(self.device)

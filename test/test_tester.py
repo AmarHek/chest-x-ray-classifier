@@ -24,4 +24,4 @@ if __name__ == "__main__":
 
     tester.test()
     tester.save_metrics("C:/Users/Amar/Documents/metrics.json")
-    tester.save_raw_results("C:/Users/Amar/Documents/output.json")
+    tester.save_predictions("C:/Users/Amar/Documents/output.json")

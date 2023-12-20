@@ -36,6 +36,7 @@ class TrainParams(BaseParams):
     # which metrics to track during training
     metrics: List[str] = field(default_factory=lambda: ["auc", "prec", "rec", "f1"])
     threshold: float = 0.5
+    per_class: bool = False  # whether to compute metrics per class (additionally)
 
     # validation parameters
     validation_metric: str = "loss"  # which metric to use for saving best model
