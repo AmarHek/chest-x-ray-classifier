@@ -1,22 +1,23 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
 # IDEs and editors
-/.idea
-.idea
+.idea/
 
 # pycache
-/__pycache__
-/src/models/__pycache__
+__pycache__/
+src/models/__pycache__
 
 # venv
-/venv
+venv/
 
 # files
-/data
-/experiments
-/work_dirs
+data/
+experiments/
+work_dirs/
 
 # setup
-/build
-/dist
-/*.egg-info
+build/
+dist/
+*.egg-info/
+src/*.egg-info/
+
