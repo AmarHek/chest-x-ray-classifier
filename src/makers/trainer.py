@@ -53,7 +53,6 @@ class Trainer:
 
         # various variable declarations
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        print(f"Device set to {self.device}.")
 
         # Model Loading
         self.model = load_model(modelParams)
@@ -229,15 +228,14 @@ class Trainer:
         for metric in scores.keys():
             # average loss and metrics at current batch
             score = scores[metric] / divider
-            if metric.endswith("_class"):
-                # No verbosity for class metrics, only logging
-                if self.logger is not None:
-                    for label in self.train_set.train_labels:
-                        self.logger.add_scalar(f"{metric.capitalize()}/{label}/{mode}", score, step)
-            else:
-                # average metrics are printed and logged
-                log_output += f"{metric.capitalize()}: {score:.4f}" + " | "
-                if self.logger is not None:
+            if self.logger is not None:
+                if metric.endswith("_class"):
+                    # No verbosity for class metrics, only logging
+                    for i, label in enumerate(self.train_set.train_labels):
+                        self.logger.add_scalar(f"{metric.capitalize()}/{label}/{mode}", score[i], step)
+                else:
+                    # average metrics are printed and logged
+                    log_output += f"{metric.capitalize()}: {score:.4f}" + " | "
                     self.logger.add_scalar(f"{metric.capitalize()}/{mode}", score, step)
 
         # remove final " | " before printing
@@ -330,7 +328,10 @@ class Trainer:
 
     def train(self):
         # set seed
+        print(f"Device set to {self.device}.")
+
         torch.manual_seed(self.seed)
+        print(f"Seed set to {self.seed}.")
 
         print(f'Starting training at path {self.work_dir}.')
 

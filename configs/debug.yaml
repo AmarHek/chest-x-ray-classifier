@@ -7,12 +7,11 @@ trainParams:
   n_epochs: 200
   save_epoch_freq: 1
   max_keep_ckpts: 3
-  batch_size: 4
+  batch_size: 8
   loss: "bce"
   optimizer: "adam"
   learning_rate: 0.0003
   metrics: ["auc", "f1", "prec", "rec", "auc_class", "f1_class", "prec_class", "rec_class"]
-  per_class: True
   validation_metric: "loss"
   validation_metric_mode: "min"
   validation_epoch_freq: 1
