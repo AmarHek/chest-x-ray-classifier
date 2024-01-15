@@ -1,6 +1,3 @@
-"""
-Training script for CycleGAN, CycleMedGAN and Pix2Pix
-"""
 import argparse
 
 import params
