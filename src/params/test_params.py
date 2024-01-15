@@ -8,14 +8,18 @@ from params import BaseParams
 class TestParams(BaseParams):
     name = "Test Parameters"
 
+    # Two options: either search automatically for models in work_dir or
+    # only search in work_dir + model_paths
+    automatic: bool = False  # whether to auto search for models (and results) in work_dir
     work_dir: str = "./work_dirs/"  # where are the models saved
-    # Two options: either search recursively for models in work_dir or only search in work_dir + experiment
-    recursive: bool = False  # whether to recursively search for models in work_dir
-    exp_names: str | List[str] = "Experiment"  # name of the experiment dir(s)
+    model_paths: str | List[str] = field(default_factory=lambda: [])  # name(s) of the model subdirectories
+    output_dir: str = None  # name of the output dir (if None, then name is derived from dataset name)
+    overwrite: bool = False  # whether to overwrite existing results
 
-    compute_metrics: bool = True
-    metrics: List[str] = field(default_factory=lambda: ["auc", "prec", "rec", "f1"])
+    device: str = "cuda"
+    metrics: List[str] = field(default_factory=lambda: [])  # which metrics to compute
     threshold: float = 0.5
 
     batch_size: int = 32
     test_time_augmentation: bool = False  # whether to use test time augmentation
+    num_augmentations: int = 5  # how many augmented images to use
