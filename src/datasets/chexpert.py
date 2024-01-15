@@ -101,7 +101,8 @@ class CheXpert(Dataset):
 
         # load the image in RGB format
         image = Image.open(self._images_list[idx],).convert('RGB')
-        # apply image processing
+
+        # apply image processing and data augmentation
         image = self.process_image(image)
 
         label = np.array(self._labels_list[idx]).reshape(-1).astype(np.float32)
