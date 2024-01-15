@@ -26,9 +26,9 @@ class Trainer:
                  ):
 
         # some assertions
-        assert dataTrainParams.train_labels == dataValParams.train_labels\
+        assert dataTrainParams.train_labels == dataValParams.train_labels \
             , "Train and validation labels do not match!"
-        assert modelParams.num_classes == len(dataTrainParams.train_labels)\
+        assert modelParams.num_classes == len(dataTrainParams.train_labels) \
             , "Number of classes does not match number of labels!"
 
         # track params
@@ -457,6 +457,7 @@ class Trainer:
 
         self.modelParams = loaded_dict["modelParams"]
         self.model = load_model(self.modelParams)
+        self.model.load_state_dict(loaded_dict["model"])
         self.optimizer.load_state_dict(loaded_dict["optimizer"])
         self.current_epoch = loaded_dict["epoch"]
         self.best_score = loaded_dict["best_score"]
