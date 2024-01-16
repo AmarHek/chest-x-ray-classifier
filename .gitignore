@@ -3,7 +3,7 @@
 # IDEs and editors
 .idea/*
 .idea/misc.xml
-/.idea/misc.xml
+/.idea
 
 # pycache
 __pycache__/
