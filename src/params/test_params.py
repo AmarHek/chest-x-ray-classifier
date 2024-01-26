@@ -13,8 +13,9 @@ class TestParams(BaseParams):
     automatic: bool = False  # whether to auto search for models (and results) in work_dir
     work_dir: str = "./work_dirs/"  # where are the models saved
     model_paths: str | List[str] = field(default_factory=lambda: [])  # name(s) of the model subdirectories
-    output_dir: str = None  # name of the output dir (if None, then name is derived from dataset name)
+    output_dir: str = ""  # name of the output dir (if empty, then name is derived from dataset name)
     overwrite: bool = False  # whether to overwrite existing results
+    write_filenames: bool = True  # whether to write filenames to output.csv
 
     device: str = "cuda"
     metrics: List[str] = field(default_factory=lambda: [])  # which metrics to compute
