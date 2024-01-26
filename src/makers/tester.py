@@ -40,7 +40,7 @@ class Tester:
             raise ValueError(f"Work directory {testParams.work_dir} does not exist.")
 
         # get name of output dir
-        if testParams.output_dir is None:
+        if testParams.output_dir == "":
             self.output_dir = datasetParams.dataset
             print(f"Output directory name set to {self.output_dir}.")
         else:
