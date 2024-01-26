@@ -215,9 +215,9 @@ class Tester:
             os.mkdir(output_dir)
         return output_dir
 
-    def save_output(self, output_dir: str, predictions: torch.Tensor):
+    def save_output(self, model_dir: str, predictions: torch.Tensor):
         # save outputs as csv with labels as columns
-        file = os.path.join(output_dir, "outputs.csv")
+        file = os.path.join(model_dir, self.output_dir, "outputs.csv")
         predictions_np = predictions.cpu().numpy()
         predictions_df = pd.DataFrame(predictions_np, columns=self.labels)
         predictions_df.to_csv(file, index=False)
@@ -226,9 +226,9 @@ class Tester:
         for metric in self.metrics.keys():
             self.test_scores[metric] = self.metrics[metric](predictions, ground_truth.int())
 
-    def save_metrics(self, output_dir: str):
+    def save_metrics(self, model_dir: str):
         # save metrics as csv
-        file = os.path.join(output_dir, "metrics.csv")
+        file = os.path.join(model_dir, self.output_dir, "metrics.csv")
 
         # Separate average and class-specific metrics
         average_metrics = {}
