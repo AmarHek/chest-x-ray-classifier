@@ -82,6 +82,11 @@ class Tester:
             print("Warning: No metrics will be computed.")
         print(f"Metrics set to {testParams.metrics}.")
 
+        # initialize trackers
+        self.predictions = torch.FloatTensor().to(self.device)
+        self.ground_truth = torch.FloatTensor().to(self.device)
+        self.filenames = []
+
     def _outputs_exist(self, model_path: str):
         if os.path.exists(os.path.join(model_path, self.output_dir)):
             # check for outputs.csv and metrics.json
@@ -257,9 +262,10 @@ class Tester:
         result_df.to_csv(file, index=False)
 
     def test_model(self, model):
-        # tensors to collect predictions and ground truths
-        predictions = torch.FloatTensor().to(self.device)
-        ground_truth = torch.FloatTensor().to(self.device)
+        # reset containers
+        self.predictions = torch.FloatTensor().to(self.device)
+        self.ground_truth = torch.IntTensor().to(self.device)
+        self.filenames = []
 
         with torch.no_grad():
             for images, labels in tqdm(self.test_loader, total=len(self.test_loader)):
@@ -279,10 +285,9 @@ class Tester:
                     output /= (self.num_augmentations + 1)
 
                 # update containers
-                ground_truth = torch.cat((ground_truth, labels), 0)
-                predictions = torch.cat((predictions, output), 0)
-
-        return ground_truth, predictions
+                self.ground_truth = torch.cat((self.ground_truth, labels), 0)
+                self.predictions = torch.cat((self.predictions, output), 0)
+                self.filenames.extend(fns)
 
     def test(self):
         print(f"Testing {len(self.model_paths)} models...")
@@ -294,12 +299,12 @@ class Tester:
             print(f"Loading model...")
             model = self.load_model_from_path(model_path)
             print(f"Running inference...")
-            ground_truth, predictions = self.test_model(model)
+            self.test_model(model)
             print(f"Saving outputs...")
-            self.save_output(model_path, predictions)
+            self.write_output(model_path)
             if self.compute_metrics:
-                self.update_metrics(predictions, ground_truth)
-                self.save_metrics(model_path)
+                self.update_metrics()
+                self.write_metrics(model_path)
             print("Done.")
 
         print("Testing done.")
