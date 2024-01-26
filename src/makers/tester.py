@@ -63,6 +63,7 @@ class Tester:
         print("Getting model paths...")
         self.overwrite = testParams.overwrite
         self.automatic = testParams.automatic
+        self.write_filenames = testParams.write_filenames
         self.model_paths = self.get_model_paths(testParams.model_paths)
         print(f"Found {len(self.model_paths)} models.")
 
@@ -218,11 +219,14 @@ class Tester:
             os.mkdir(output_dir)
         return output_dir
 
-    def save_output(self, model_dir: str, predictions: torch.Tensor):
+    def write_output(self, model_dir: str):
         # save outputs as csv with labels as columns
         file = os.path.join(model_dir, self.output_dir, "outputs.csv")
-        predictions_np = predictions.cpu().numpy()
+        predictions_np = self.predictions.cpu().numpy()
         predictions_df = pd.DataFrame(predictions_np, columns=self.labels)
+        if self.write_filenames:
+            filenames = pd.Series(self.filenames)
+            predictions_df.insert(0, "filename", filenames)
         predictions_df.to_csv(file, index=False)
 
     def update_metrics(self):
