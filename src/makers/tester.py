@@ -225,9 +225,12 @@ class Tester:
         predictions_df = pd.DataFrame(predictions_np, columns=self.labels)
         predictions_df.to_csv(file, index=False)
 
-    def update_metrics(self, predictions, ground_truth):
+    def update_metrics(self):
         for metric in self.metrics.keys():
-            self.test_scores[metric] = self.metrics[metric](predictions, ground_truth.int())
+            if metric.endswith('_class'):
+                self.test_scores[metric] = self.metrics[metric](self.predictions, self.ground_truth.int()).cpu().numpy()
+            else:
+                self.test_scores[metric] = self.metrics[metric](self.predictions, self.ground_truth.int()).item()
 
     def write_metrics(self, model_dir: str):
         # save metrics as csv
