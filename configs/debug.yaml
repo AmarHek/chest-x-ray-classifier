@@ -21,15 +21,13 @@ trainParams:
   lr_policy: "cosine"
 modelParams:
   model_type: "pretrained"
-  backbone: "densenet121"
+  backbone: "efficientnet_b0"
   weights: "DEFAULT"
   freeze_depth: -1
   dropout: 0.0
   classifier_function: "sigmoid"
   num_classes: 13
-  head: "csra"
-  num_heads: 4
-  lam: 0.1
+  head: "linear"
 trainDataParams:
   dataset: "chexpert"
   image_root_path: 'F:/'
