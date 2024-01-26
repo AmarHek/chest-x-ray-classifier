@@ -12,9 +12,11 @@ class LinearClassifier(nn.Module):
         assert self.in_features > 0, "in_features must be greater than 0"
         assert self.num_classes > 0, "num_classes must be greater than 0"
 
+        self.flatten = nn.Flatten()
         self.fc = nn.Linear(self.in_features, self.num_classes, bias=True)
 
     def forward(self, x):
+        x = self.flatten(x)
         x = self.fc(x)
         return x
 
