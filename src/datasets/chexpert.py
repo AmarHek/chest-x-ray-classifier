@@ -98,16 +98,21 @@ class CheXpert(Dataset):
         return self.num_images
 
     def __getitem__(self, idx):
+        # get the image path
+        image_path = self._images_list[idx]
 
         # load the image in RGB format
-        image = Image.open(self._images_list[idx],).convert('RGB')
+        image = Image.open(image_path).convert('RGB')
 
         # apply image processing and data augmentation
         image = self.process_image(image)
 
         label = np.array(self._labels_list[idx]).reshape(-1).astype(np.float32)
 
-        return image, label
+        # pack everything up into a dictionary
+        sample = {'image': image, 'label': label, 'image_path': image_path}
+
+        return sample
 
     @property
     def chexpert_classes(self):

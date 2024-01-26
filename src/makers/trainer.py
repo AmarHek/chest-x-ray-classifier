@@ -247,10 +247,16 @@ class Trainer:
 
         # switch model to training mode
         self.model.train()
+
+        print(self.model)
         # reset running metrics
         self.reset_scores(mode="train")
 
-        for batch, (images, labels) in tqdm(enumerate(self.train_loader), total=len(self.train_loader)):
+        for batch, data in tqdm(enumerate(self.train_loader), total=len(self.train_loader)):
+            # extract data
+            images = data["image"]
+            labels = data["label"]
+
             # move to device
             images = images.to(self.device)
             labels = labels.to(self.device)
@@ -296,7 +302,11 @@ class Trainer:
         ground_truth = torch.FloatTensor().to(self.device)
 
         with torch.no_grad():
-            for batch, (images, labels) in enumerate(self.val_loader):
+            for batch, data in enumerate(self.val_loader):
+                # extract data
+                images = data["image"]
+                labels = data["label"]
+
                 # move inputs to device
                 images = images.to(self.device)
                 labels = labels.to(self.device)
