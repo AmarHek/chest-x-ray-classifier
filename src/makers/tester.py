@@ -229,7 +229,7 @@ class Tester:
         for metric in self.metrics.keys():
             self.test_scores[metric] = self.metrics[metric](predictions, ground_truth.int())
 
-    def save_metrics(self, model_dir: str):
+    def write_metrics(self, model_dir: str):
         # save metrics as csv
         file = os.path.join(model_dir, self.output_dir, "metrics.csv")
 
@@ -246,14 +246,14 @@ class Tester:
         # Create DataFrames for average and class-specific metrics
         # average is straightforward
         df_average = pd.DataFrame(list(average_metrics.items()), columns=['Metric', 'Average'])
-        # for class we first create an empty DataFrame
+        # for class, we first create an empty DataFrame
         df_class = pd.DataFrame(columns=['Metric'] + self.labels)
         # populate the DataFrame
         for metric, values in class_metrics.items():
             df_class = df_class.append({'Metric': metric, **dict(zip(self.labels, values))}, ignore_index=True)
 
         # Concatenate DataFrames along columns
-        result_df = pd.concat([df_average, df_class], axis=1)
+        result_df = pd.merge(left=df_average, right=df_class, on='Metric', how='outer')
 
         # Replace NaN with -1
         result_df = result_df.fillna(-1)
