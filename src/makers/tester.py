@@ -100,7 +100,7 @@ class Tester:
 
     @staticmethod
     def _best_model_exists(model_path: str):
-        # search for a file ending on 'best.pth" within the model_path
+        # search for a file ending on 'best.pth' within the model_path
         for file in os.listdir(model_path):
             if file.endswith(".pth") and "best" in file:
                 return True
@@ -268,7 +268,12 @@ class Tester:
         self.filenames = []
 
         with torch.no_grad():
-            for images, labels in tqdm(self.test_loader, total=len(self.test_loader)):
+            for data in tqdm(self.test_loader, total=len(self.test_loader)):
+                # extract data
+                images = data['image']
+                labels = data['label']
+                fns = data['image_path']
+
                 # move inputs to device
                 images = images.to(self.device)
                 labels = labels.to(self.device)
