@@ -34,7 +34,8 @@ for metric, values in class_metrics.items():
     df_class = df_class.append({'Metric': metric, **dict(zip(labels, values))}, ignore_index=True)
 
 # Concatenate DataFrames along columns
-result_df = pd.concat([df_average, df_class], axis=1)
+# result_df = pd.concat([df_average, df_class], axis=1)
+result_df = pd.merge(left=df_average, right=df_class, on='Metric', how='outer')
 
 # Replace NaN with -1
 result_df = result_df.fillna(-1)
