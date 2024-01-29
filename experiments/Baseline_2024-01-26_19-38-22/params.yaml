@@ -1,0 +1,205 @@
+augmentParams:
+  crop_scale: !!python/tuple
+  - 0.9
+  - 1.0
+  degrees: !!python/tuple
+  - -15
+  - 15
+  fill: 128
+  horizontalFlip: true
+  randomAffine: true
+  randomResizedCrop: false
+  scale: !!python/tuple
+  - 0.95
+  - 1.05
+  translate: !!python/tuple
+  - 0.05
+  - 0.05
+  verticalFlip: false
+dataTestParams:
+  assert_images_exist: false
+  augment: false
+  csv_path: /scratch/hekalo/Datasets/CheXpert-v1.0-small/train.csv
+  dataset: chexpert
+  image_format: jpeg
+  image_root_path: /scratch/hekalo/Datasets/
+  image_size: !!python/tuple
+  - 320
+  - 320
+  lsr_lower: 0.55
+  lsr_method: dam
+  lsr_one_cols:
+  - Edema
+  - Atelectasis
+  lsr_upper: 0.85
+  lsr_zero_cols:
+  - Cardiomegaly
+  - Consolidation
+  - Pleural Effusion
+  mode: train
+  normalization: imagenet
+  scan_orientation: frontal
+  scan_projection: all
+  shuffle: true
+  train_labels:
+  - Atelectasis
+  - Cardiomegaly
+  - Consolidation
+  - Edema
+  - Pleural Effusion
+  - Enlarged Cardiomediastinum
+  - Lung Opacity
+  - Lung Lesion
+  - Pneumonia
+  - Pneumothorax
+  - Pleural Other
+  - Fracture
+  - Support Devices
+  upsample_labels:
+  - Cardiomegaly
+  - Consolidation
+  use_upsampling: false
+  verbose: true
+dataTrainParams:
+  assert_images_exist: false
+  augment: true
+  csv_path: /scratch/hekalo/Datasets/CheXpert-v1.0-small/train.csv
+  dataset: chexpert
+  image_format: jpeg
+  image_root_path: /scratch/hekalo/Datasets/
+  image_size: !!python/tuple
+  - 320
+  - 320
+  lsr_lower: 0.55
+  lsr_method: dam
+  lsr_one_cols:
+  - Edema
+  - Atelectasis
+  lsr_upper: 0.85
+  lsr_zero_cols:
+  - Cardiomegaly
+  - Consolidation
+  - Pleural Effusion
+  mode: train
+  normalization: imagenet
+  scan_orientation: frontal
+  scan_projection: all
+  shuffle: true
+  train_labels:
+  - Atelectasis
+  - Cardiomegaly
+  - Consolidation
+  - Edema
+  - Pleural Effusion
+  - Enlarged Cardiomediastinum
+  - Lung Opacity
+  - Lung Lesion
+  - Pneumonia
+  - Pneumothorax
+  - Pleural Other
+  - Fracture
+  - Support Devices
+  upsample_labels:
+  - Cardiomegaly
+  - Consolidation
+  use_upsampling: false
+  verbose: true
+dataValParams:
+  assert_images_exist: false
+  augment: false
+  csv_path: /scratch/hekalo/Datasets/CheXpert-v1.0-small/valid.csv
+  dataset: chexpert
+  image_format: jpeg
+  image_root_path: /scratch/hekalo/Datasets/
+  image_size: !!python/tuple
+  - 320
+  - 320
+  lsr_lower: 0.55
+  lsr_method: dam
+  lsr_one_cols:
+  - Edema
+  - Atelectasis
+  lsr_upper: 0.85
+  lsr_zero_cols:
+  - Cardiomegaly
+  - Consolidation
+  - Pleural Effusion
+  mode: val
+  normalization: imagenet
+  scan_orientation: frontal
+  scan_projection: all
+  shuffle: true
+  train_labels:
+  - Atelectasis
+  - Cardiomegaly
+  - Consolidation
+  - Edema
+  - Pleural Effusion
+  - Enlarged Cardiomediastinum
+  - Lung Opacity
+  - Lung Lesion
+  - Pneumonia
+  - Pneumothorax
+  - Pleural Other
+  - Fracture
+  - Support Devices
+  upsample_labels:
+  - Cardiomegaly
+  - Consolidation
+  use_upsampling: false
+  verbose: true
+modelParams:
+  backbone: densenet121
+  classifier_function: sigmoid
+  dropout: 0.0
+  freeze_depth: -1
+  head: linear
+  lam: 0.1
+  model_type: pretrained
+  num_classes: 13
+  num_heads: 4
+  weights: DEFAULT
+testParams:
+  exp_name: Baseline_2024-01-26_19-38-22
+  metrics:
+  - auc
+  - f1
+  - prec
+  - rec
+  work_dir: ./experiments/
+trainParams:
+  batch_size: 32
+  continue_train: false
+  cyclic_lr: !!python/tuple
+  - 0.001
+  - 0.01
+  device: cuda
+  early_stopping: true
+  early_stopping_patience: 10
+  exp_name: Baseline_2024-01-26_19-38-22
+  exponential_gamma: 0.01
+  k: 1
+  learning_rate: 0.0003
+  logger: tensorboard
+  loss: bce
+  lr_decay_iters: 50
+  lr_policy: cosine
+  max_keep_ckpts: 3
+  metrics:
+  - auc
+  - f1
+  - prec
+  - rec
+  n_epochs: 200
+  num_workers: 4
+  optimizer: adam
+  plateau_patience: 5
+  save_epoch_freq: 1
+  seed: 42
+  threshold: 0.5
+  update_steps: 10
+  validation_batch_size: 32
+  validation_epoch_freq: 1
+  validation_metric: loss
+  validation_metric_mode: min
+  work_dir: ./experiments/
