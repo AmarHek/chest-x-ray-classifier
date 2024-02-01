@@ -14,6 +14,8 @@ def parse_args():
                         help="Learning rate for the optimizer.", type=float)
     parser.add_argument("--backbone",
                         help="Backbone for the model.", type=str)
+    parser.add_argument("--labels",
+                        help="Labels to train on.", type=str)
     args = parser.parse_args()
     return args
 
@@ -34,6 +36,12 @@ def merge_args(args,
         modelParams.backbone = args.backbone
         trainParams.exp_name = trainParams.exp_name + f"_{args.backbone}"
         print(f"Set backbone to {args.backbone} and exp_name "
+              f"to {trainParams.exp_name}")
+    if args.labels is not None:
+        trainDataParams.train_labels = args.labels.split(",")
+        valDataParams.train_labels = args.labels.split(",")
+        trainParams.exp_name = trainParams.exp_name + f"_{args.labels}"
+        print(f"Set labels to {args.labels} and exp_name "
               f"to {trainParams.exp_name}")
 
 
