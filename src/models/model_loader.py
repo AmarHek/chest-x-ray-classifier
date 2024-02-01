@@ -1,4 +1,4 @@
-from .pretrained_model import PretrainedModel
+from pretrained_model import PretrainedModel
 # from custom_model import CustomModel
 
 from params import PretrainedModelParams, CustomModelParams
