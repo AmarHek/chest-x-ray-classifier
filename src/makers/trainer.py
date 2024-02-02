@@ -248,7 +248,6 @@ class Trainer:
         # switch model to training mode
         self.model.train()
 
-        print(self.model)
         # reset running metrics
         self.reset_scores(mode="train")
 
