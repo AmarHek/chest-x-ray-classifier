@@ -1,0 +1,71 @@
+trainParams:
+  exp_name: "label_dependency"
+  work_dir: "/home/ls6/hekalo/experiments/"
+  seed: 42
+  logger: "tensorboard"
+  update_steps: 10
+  n_epochs: 400
+  save_epoch_freq: 1
+  max_keep_ckpts: 3
+  batch_size: 32
+  loss: "bce"
+  optimizer: "adam"
+  learning_rate: 0.0003
+  metrics: ["auc", "f1", "prec", "rec"]
+  validation_metric: "loss"
+  validation_metric_mode: "min"
+  validation_epoch_freq: 1
+  validation_batch_size: 32
+  early_stopping: True
+  early_stopping_patience: 20
+  lr_policy: "cosine"
+modelParams:
+  model_type: "pretrained"
+  backbone: "resnet50"
+  weights: "DEFAULT"
+  freeze_depth: -1
+  dropout: 0.5
+  classifier_function: "sigmoid"
+  num_classes: 5
+  head: "linear"
+  num_heads: 4
+  lam: 0.1
+trainDataParams:
+  dataset: "chexpert"
+  image_root_path: '/scratch/hekalo/Datasets/'
+  csv_path: '/scratch/hekalo/Datasets/CheXpert-v1.0-small/train.csv'
+  image_size: [320, 320]
+  image_format: 'jpeg'
+  normalization: 'imagenet'
+  augment: True
+  mode: 'train'
+  shuffle: True
+  lsr_method: "dam"
+  use_upsampling: True
+  scan_orientation: "frontal"
+  scan_projection: "all"
+  train_labels: ['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion']
+valDataParams:
+  dataset: "chexpert"
+  image_root_path: '/scratch/hekalo/Datasets/'
+  csv_path: '/scratch/hekalo/Datasets/CheXpert-v1.0-small/valid.csv'
+  image_size: [224, 224]
+  image_format: 'jpeg'
+  normalization: 'imagenet'
+  augment: False
+  mode: 'val'
+  shuffle: False
+  lsr_method: "dam"
+  use_upsampling: False
+  scan_orientation: "frontal"
+  scan_projection: "all"
+  train_labels: ['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion']
+augmentParams:
+  randomAffine: True
+  degrees: [-15, 15]
+  translate: [0.05, 0.05]
+  scale: [0.95, 1.05]
+  fill: 128
+  randomResizedCrop: False
+  horizontalFlip: True
+  verticalFlip: False
