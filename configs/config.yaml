@@ -4,7 +4,7 @@ trainParams:
   seed: 42
   logger: "tensorboard"
   update_steps: 10
-  n_epochs: 200
+  n_epochs: 2
   save_epoch_freq: 1
   max_keep_ckpts: 3
   batch_size: 32
