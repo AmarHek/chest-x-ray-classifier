@@ -31,7 +31,7 @@ label_sets=(
 )
 
 for label_set in "${label_sets[@]}"; do
-  sbatch -p ls6 --gres=gpu:1 --wrap="python src/Scripts/train.py $config --label_set=$label_set" -o $log_output -e $error_output
+  sbatch -p ls6 --gres=gpu:1 --wrap="python src/Scripts/train.py $config --labels=$label_set" -o $log_output -e $error_output
 done
 
 
