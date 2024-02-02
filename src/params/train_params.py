@@ -10,7 +10,6 @@ class TrainParams(BaseParams):
 
     exp_name: str = "Experiment"
     work_dir: str = "./work_dirs/"
-    continue_dir: str = "Experiment_DD_MM_YY_HH_MM_SS"
 
     seed: int = 42069
 
