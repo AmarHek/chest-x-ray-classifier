@@ -16,6 +16,8 @@ def parse_args():
                         help="Backbone for the model.", type=str)
     parser.add_argument("--labels",
                         help="Labels to train on.", type=str)
+    parser.add_argument("--batch_size",
+                        help="Batch size for the training.", type=int)
     args = parser.parse_args()
     return args
 
@@ -41,8 +43,10 @@ def merge_args(args,
         trainDataParams.train_labels = args.labels.split(",")
         valDataParams.train_labels = args.labels.split(",")
         trainParams.exp_name = trainParams.exp_name + f"_{args.labels}"
-        print(f"Set labels to {args.labels} and exp_name "
-              f"to {trainParams.exp_name}")
+        print(f"Set labels to {args.labels}")
+    if args.batch_size is not None:
+        trainParams.batch_size = args.batch_size
+        print(f"Set batch size to {args.batch_size}")
 
 
 if __name__ == "__main__":
