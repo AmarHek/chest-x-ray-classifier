@@ -6,7 +6,10 @@ import torch.nn.functional as F
 from params import PretrainedModelParams
 from models import get_backbone, freeze_layers, classifier_head, classifier_function
 
-
+def prune_densenet(model, pruning_percentage):
+    for name, module in model.named_modules():
+        if isinstance(module, nn.Conv2d):
+            prune.l1_unstructured(module, name='weight', amount=pruning_percentage)
 
 
 class PretrainedModel(nn.Module):
@@ -79,11 +82,60 @@ if __name__ == "__main__":
    model_params = checkpoint['modelParams']
 
    model = PretrainedModel(model_params)
-   print(model.backbone.conv0)
+   #print(model.backbone.conv0)
    
    #module pruning
-   module = model.backbone.conv0
-   prune.random_unstructured(module, name="weight", amount=0.3)
-   print(list(module.named_buffers()))
+   #module = model.backbone.conv0
+   #prune.random_unstructured(module, name="weight", amount=0.3)
+   #print(list(module.named_buffers()))
+   modules = list(model.backbone)
+   print(f"found {len(modules)} modules")
+   counter = 0
+   #for m in modules:
+   #   print(type(m))
+   #   layers = [a for a in dir(m) if not a.startswith('__') and not callable(getattr(m, a))]
+   #   try:
+   #         #print(m._modules)
+   #         mods = list(m._modules)
+   #         for mod in mods:
+   #            print(counter)
+   #            print(type(mod))
+   #            print(mod)
+   #            prune.random_unstructured(mod, name="weight", amount=0.3)
+   #            
+   #            counter+=1
+   #   except:
+   #            print("error")
+   #            pass
+      #print(layers,"\n\n\n")
+#print(modules)
+   pruning_method = prune.L1Unstructured(amount=0.2)  # 20% pruning
+   # Apply pruning to the entire model
+#   prune.global_unstructured(
+#   parameters=model.backbone.parameters(),
+#   pruning_method=pruning_method,
+#)
+   #print(type(model.super()))
+   #print(type(model.backbone))
+   #print(model.backbone.parameters())
+   #print(model.parameters)
+   for m in model.backbone.parameters():
+      try:
+         prune.l1_unstructured(m,name="weight", amount=0.8)
+         print('successfully pruned')
+      except:
+                print('pruning error')
+#print(list(model.backbone.parameters())[0])
+   print(model.backbone.named_modules)
+   pruning_percentage = .5
+   prune_densenet(model.backbone, pruning_percentage)
+   print('pruned model')
+   #torch.save(model.backbone.state_dict(), f'pruned_densenet{int(pruning_percentage*100)}.pth')
+   checkpoint['model'] = model.backbone.state_dict()
+   torch.save(checkpoint, 'pruned_50.pth')
    print('successfully ran through')
    #print(model(dummy_input).shape)
+   #prune.global_unstructured(
+   #parameters=model.backbone.parameters(),
+   #pruning_method=pruning_method,
+   #)

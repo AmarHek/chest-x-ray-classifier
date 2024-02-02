@@ -1,7 +1,7 @@
 import torch
 from torch import nn
-import torch.nn.utils.prune as prune
-import torch.nn.functional as F
+#import torch.nn.utils.prune as prune
+#import torch.nn.functional as F
 
 from params import PretrainedModelParams
 from models import get_backbone, freeze_layers, classifier_head, classifier_function
@@ -48,27 +48,28 @@ class PretrainedModel(nn.Module):
 
 
 if __name__ == "__main__":
-    #dummy_input = torch.zeros(4, 3, 224, 224)
+   
+   dummy_input = torch.zeros(4, 3, 224, 224)
 
-    #model_params = PretrainedModelParams()
-    #model_params.backbone = "efficientnet_b0"
-    #model_params.head = "csra"
-    #model_params.num_heads = 4
-    #model_params.lam = 0.1
-    #model_params.num_classes = 14
-                        
+   model_params = PretrainedModelParams()
+   model_params.backbone = "efficientnet_b0"
+   model_params.head = "csra"
+   model_params.num_heads = 4
+   model_params.lam = 0.1
+   model_params.num_classes = 14
+   model = PretrainedModel(model_params)
 # Step 1: Define your model architecture
 # For example, let's use a pre-trained ResNet model
 #model = models.densenet121(pretrained=False)
 
-   model_path = 'Baseline_2024-01-26_19-38-22/Baseline_2024-01-26_19_38_22_2.pth'
+   #model_path = 'Baseline_2024-01-26_19-38-22/Baseline_2024-01-26_19_38_22_2.pth'
 
 
 # Step 2: Load the pre-trained weights from the .pth file
-   file_path = f'/autofs/home/stud/jaeger/chest-x-ray-classifier/experiments/{model_path}'
+   #file_path = f'/autofs/home/stud/jaeger/chest-x-ray-classifier/experiments/{model_path}'
 
-   fp = "/autofs/stud/jaeger/chest-x-ray-classifier/experiments/Baseline_2024-01-26_19-38-22/Baseline_2024-01-26_19-38-22_2.pth"
-   checkpoint = torch.load(fp, map_location=torch.device('cpu'))
+   #fp = "/autofs/stud/jaeger/chest-x-ray-classifier/experiments/Baseline_2024-01-26_19-38-22/Baseline_2024-01-26_19-38-22_2.pth"
+   #checkpoint = torch.load(fp, map_location=torch.device('cpu'))
 ##print(list(checkpoint.keys()))
 #print(checkpoint['model'].weights)
 #print(checkpoint['model'])
@@ -76,14 +77,14 @@ if __name__ == "__main__":
 
 # If the .pth file contains more than just the state_dict (e.g.>#model.load_state_dict(checkpoint['modelParams'])
 
-   model_params = checkpoint['modelParams']
+   #model_params = checkpoint['modelParams']
 
-   model = PretrainedModel(model_params)
-   print(model.backbone.conv0)
+   
+   #print(model.backbone.conv0)
    
    #module pruning
-   module = model.backbone.conv0
-   prune.random_unstructured(module, name="weight", amount=0.3)
-   print(list(module.named_buffers()))
-   print('successfully ran through')
-   #print(model(dummy_input).shape)
+   #module = model.backbone.conv0
+   #prune.random_unstructured(module, name="weight", amount=0.3)
+   #print(list(module.named_buffers()))
+   #print('successfully ran through')
+   print(model(dummy_input).shape)

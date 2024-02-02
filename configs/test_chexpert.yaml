@@ -1,14 +1,15 @@
 testParams:
   automatic: True
   work_dir: "./experiments/"
-  device: "cpu"
+  device: "cuda"
   metrics: ["auc", "f1", "prec", "rec", "auc_class", "f1_class", "prec_class"]
   threshold: 0.5
   batch_size: 16
+  model_paths: []
 testDataParams:
   dataset: "chexpert"
-  image_root_path: 'F:/'
-  csv_path: 'F:/CheXpert-v1.0-small/valid.csv'
+  image_root_path: '/scratch/hekalo/Datasets/'
+  csv_path: '/scratch/hekalo/Datasets/CheXpert-v1.0-small/train.csv'
   image_size: [320, 320]
   image_format: 'jpeg'
   normalization: 'imagenet'

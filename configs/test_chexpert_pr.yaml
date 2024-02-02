@@ -1,0 +1,34 @@
+testParams:
+  automatic: True
+  work_dir: "./experiments/"
+  device: "cuda"
+  metrics: ["auc", "f1", "prec", "rec", "auc_class", "f1_class", "prec_class"]
+  threshold: 0.5
+  batch_size: 16
+  model_paths: ['/autofs/home/stud/jaeger/chest-x-ray-classifier/experiments/Baseline_2024-01-26_19-38-22/pruned_densenet50_best.pth']
+testDataParams:
+  dataset: "chexpert"
+  image_root_path: '/scratch/hekalo/Datasets/'
+  csv_path: '/scratch/hekalo/Datasets/CheXpert-v1.0-small/train.csv'
+  image_size: [320, 320]
+  image_format: 'jpeg'
+  normalization: 'imagenet'
+  augment: False
+  mode: 'test'
+  shuffle: True
+  lsr_method: "dam"
+  use_upsampling: False
+  scan_orientation: "frontal"
+  scan_projection: "all"
+  train_labels: [ "Atelectasis", "Cardiomegaly", "Consolidation", "Edema", "Pleural Effusion",
+                  "Enlarged Cardiomediastinum", "Lung Opacity", "Lung Lesion", "Pneumonia",
+                  "Pneumothorax", "Pleural Other", "Fracture", "Support Devices" ]
+augmentParams:
+  randomAffine: True
+  degrees: [-15, 15]
+  translate: [0.05, 0.05]
+  scale: [0.95, 1.05]
+  fill: 128
+  randomResizedCrop: False
+  horizontalFlip: True
+  verticalFlip: False

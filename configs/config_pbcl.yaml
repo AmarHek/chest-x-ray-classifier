@@ -1,0 +1,92 @@
+trainParams:
+  exp_name: "Baseline"
+  work_dir: "./experiments/"
+  seed: 42
+  logger: "tensorboard"
+  update_steps: 10
+  n_epochs: 200
+  save_epoch_freq: 1
+  max_keep_ckpts: 3
+  batch_size: 32
+  loss: "bce"
+  optimizer: "adam"
+  learning_rate: 0.0003
+  metrics: ["auc", "f1", "prec", "rec"]
+  validation_metric: "loss"
+  validation_metric_mode: "min"
+  validation_epoch_freq: 1
+  validation_batch_size: 32
+  early_stopping: True
+  early_stopping_patience: 10
+  lr_policy: "cosine"
+modelParams:
+  model_type: "pretrained"
+  backbone: "densenet121"
+  weights: "DEFAULT"
+  freeze_depth: -1
+  dropout: 0.0
+  classifier_function: "sigmoid"
+  num_classes: 13
+  head: "linear"
+  num_heads: 4
+  lam: 0.1
+trainDataParams:
+  dataset: "chexpert"
+  image_root_path: '/scratch/hekalo/Datasets/'
+  csv_path: '/scratch/hekalo/Datasets/CheXpert-v1.0-small/train.csv'
+  image_size: [320, 320]
+  image_format: 'jpeg'
+  normalization: 'imagenet'
+  augment: True
+  mode: 'train'
+  shuffle: True
+  lsr_method: "dam"
+  use_upsampling: False
+  scan_orientation: "frontal"
+  scan_projection: "all"
+  train_labels: ["Atelectasis", "Cardiomegaly", "Consolidation", "Edema", "Pleural Effusion",
+                 "Enlarged Cardiomediastinum", "Lung Opacity", "Lung Lesion", "Pneumonia",
+                 "Pneumothorax", "Pleural Other", "Fracture", "Support Devices"]
+valDataParams:
+  dataset: "chexpert"
+  image_root_path: '/scratch/hekalo/Datasets/'
+  csv_path: '/scratch/hekalo/Datasets/CheXpert-v1.0-small/valid.csv'
+  image_size: [320, 320]
+  image_format: 'jpeg'
+  normalization: 'imagenet'
+  augment: False
+  mode: 'val'
+  shuffle: True
+  lsr_method: "dam"
+  use_upsampling: False
+  scan_orientation: "frontal"
+  scan_projection: "all"
+  train_labels: [ "Atelectasis", "Cardiomegaly", "Consolidation", "Edema", "Pleural Effusion",
+                  "Enlarged Cardiomediastinum", "Lung Opacity", "Lung Lesion", "Pneumonia",
+                  "Pneumothorax", "Pleural Other", "Fracture", "Support Devices" ]
+testDataParams:
+  dataset: "chexpert"
+  image_root_path: '/scratch/hekalo/Datasets/'
+  csv_path: '/scratch/hekalo/Datasets/CheXpert-v1.0-small/train.csv'
+  image_size: [320, 320]
+  image_format: 'jpeg'
+  normalization: 'imagenet'
+  augment: False
+  mode: 'train'
+  shuffle: True
+  lsr_method: "dam"
+  use_upsampling: False
+  scan_orientation: "frontal"
+  scan_projection: "all"
+  train_labels: [ "Atelectasis", "Cardiomegaly", "Consolidation", "Edema", "Pleural Effusion",
+                  "Enlarged Cardiomediastinum", "Lung Opacity", "Lung Lesion", "Pneumonia",
+                  "Pneumothorax", "Pleural Other", "Fracture", "Support Devices" ]
+augmentParams:
+  randomAffine: True
+  degrees: [-15, 15]
+  translate: [0.05, 0.05]
+  scale: [0.95, 1.05]
+  fill: 128
+  randomResizedCrop: False
+  horizontalFlip: True
+  verticalFlip: False
