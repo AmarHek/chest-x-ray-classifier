@@ -85,10 +85,7 @@ class Trainer:
 
         self.train_scores, self.val_scores = self.init_scores()
 
-        # saving and logging
-        self.update_steps = trainParams.update_steps
-        self.save_epoch_freq = trainParams.save_epoch_freq
-        self.max_keep_ckpts = trainParams.max_keep_ckpts
+        # tracker for saved checkpoints
         self.saved_checkpoints = []
 
         # initialize logger
@@ -105,10 +102,10 @@ class Trainer:
         self.validation_metric_mode = trainParams.validation_metric_mode
 
         # init best score depending on score criterion
-        if trainParams.validation_metric_mode == "max":
+        if self.trainParams.validation_metric_mode == "max":
             self.best_score = 0
             self.current_score = 0
-        elif trainParams.validation_metric_mode == "min":
+        elif self.trainParams.validation_metric_mode == "min":
             self.best_score = np.infty
             self.current_score = np.infty
         else:
@@ -122,7 +119,7 @@ class Trainer:
         # learning rate schedules
         self.lr_scheduler = get_scheduler(self.trainParams.lr_policy,
                                           optimizer_fn=self.optimizer,
-                                          mode=self.validation_metric_mode,
+                                          mode=self.trainParams.validation_metric_mode,
                                           epoch_count=self.current_epoch,
                                           **self.trainParams.to_dict())
 
@@ -155,9 +152,9 @@ class Trainer:
         return self.early_stopping_tracker > self.early_stopping_patience
 
     def validation_improvement(self) -> bool:
-        if self.validation_metric_mode == "max":
+        if self.trainParams.validation_metric_mode == "max":
             condition = (self.best_score < self.current_score)
-        elif self.validation_metric_mode == "min":
+        elif self.trainParams.validation_metric_mode == "min":
             condition = (self.best_score > self.current_score)
         else:
             raise ValueError("Invalid validation metric mode!")
@@ -278,7 +275,7 @@ class Trainer:
             self.update_scores(pred, labels, mode="train")
 
             # Logging
-            if (batch + 1) % self.update_steps == 0:
+            if (batch + 1) % self.trainParams.update_steps == 0:
                 self.log(mode="train", batch=batch)
 
         # clear memory
@@ -356,7 +353,7 @@ class Trainer:
 
             # Validation
             self.validate()
-            self.current_score = self.val_scores[self.validation_metric]
+            self.current_score = self.val_scores[self.trainParams.validation_metric]
 
             # update learning rate
             if self.trainParams.lr_policy == "plateau":
@@ -365,7 +362,7 @@ class Trainer:
                 self.lr_scheduler.step()
 
             # save model on epoch
-            if (self.current_epoch % self.save_epoch_freq) == 0:
+            if (self.current_epoch % self.trainParams.save_epoch_freq) == 0:
                 self.save_model(save_best=False)
 
             # save best model
@@ -438,8 +435,7 @@ class Trainer:
                     "modelParams": self.modelParams,
                     "optimizer": self.optimizer.state_dict(),
                     "epoch": self.current_epoch,
-                    "validation_metric": self.validation_metric,
-                    "validation_metric_mode": self.validation_metric_mode,
+                    "validation_metric": self.trainParams.validation_metric,
                     "score": self.current_score,
                     "best_score": self.best_score}, save_path)
 
