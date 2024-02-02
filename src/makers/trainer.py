@@ -48,13 +48,11 @@ class Trainer:
         # create the work_dir
         os.makedirs(self.work_dir)
 
-        # seed
+        # device and seed
         self.seed = trainParams.seed
-
-        # various variable declarations
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        # Model Loading
+        # set model
         self.model = load_model(modelParams)
 
         # change resolution in dataParams for some pretrained models (currently only ViT)
@@ -67,10 +65,6 @@ class Trainer:
         self.valid_set = load_dataset(dataValParams, augmentParams)
         self.train_loader, self.val_loader = self.set_dataloaders(trainParams.batch_size, trainParams.num_workers)
 
-        # epoch tracking
-        self.current_epoch = 0
-        self.n_epochs = trainParams.n_epochs
-
         # losses, metrics, optimizer, etc.
         self.learning_rate = trainParams.learning_rate
         self.loss = get_loss(**trainParams.to_dict())
@@ -82,12 +76,10 @@ class Trainer:
                                     threshold=trainParams.threshold,
                                     task='multilabel',
                                     device=self.device)
-
         self.train_scores, self.val_scores = self.init_scores()
 
-        # tracker for saved checkpoints
+        # logging and saving
         self.saved_checkpoints = []
-
         # initialize logger
         if self.trainParams.logger == "tensorboard":
             os.makedirs(os.path.join(self.work_dir, 'logs'), exist_ok=True)
@@ -100,7 +92,6 @@ class Trainer:
             assert trainParams.validation_metric in trainParams.metrics, "Validation metric not in metrics!"
         self.validation_metric = trainParams.validation_metric
         self.validation_metric_mode = trainParams.validation_metric_mode
-
         # init best score depending on score criterion
         if self.trainParams.validation_metric_mode == "max":
             self.best_score = 0
@@ -111,12 +102,8 @@ class Trainer:
         else:
             raise ValueError("Invalid validation metric mode!")
 
-        # early stopping
-        self.early_stopping = trainParams.early_stopping
-        self.early_stopping_patience = trainParams.early_stopping_patience
-        self.early_stopping_tracker = 0
-
-        # learning rate schedules
+        # scheduling
+        self.current_epoch = 0
         self.lr_scheduler = get_scheduler(self.trainParams.lr_policy,
                                           optimizer_fn=self.optimizer,
                                           mode=self.trainParams.validation_metric_mode,
@@ -135,21 +122,18 @@ class Trainer:
 
         return train_loader, valid_loader
 
-    def set_epochs(self, new_epochs: int):
-        self.n_epochs = new_epochs
-
     def set_summary_writer(self, location: str = None, comment: str = ""):
         self.logger = SummaryWriter(log_dir=location, comment=comment)
 
     def check_early_stopping(self, improvement: bool) -> bool:
         if improvement:
             print("Improvement detected, resetting early stopping patience.")
-            self.early_stopping_tracker = 0
+            self.trainParams.early_stopping_tracker = 0
         else:
-            self.early_stopping_tracker += 1
-            print(f"No improvement. Incrementing Early Stopping tracker to {self.early_stopping_tracker}")
+            self.trainParams.early_stopping_tracker += 1
+            print(f"No improvement. Incrementing Early Stopping tracker to {self.trainParams.early_stopping_tracker}")
 
-        return self.early_stopping_tracker > self.early_stopping_patience
+        return self.trainParams.early_stopping_tracker > self.trainParams.early_stopping_patience
 
     def validation_improvement(self) -> bool:
         if self.trainParams.validation_metric_mode == "max":
@@ -344,11 +328,11 @@ class Trainer:
         # set model to device
         self.model.to(self.device)
 
-        for epoch in range(self.n_epochs):
-            self.current_epoch = epoch
+        for epoch in range(self.trainParams.n_epochs):
+            self.current_epoch += 1
 
             # Training
-            print(f'Training at epoch {epoch + 1}/{self.n_epochs}...')
+            print(f'Training at epoch {epoch + 1}/{self.trainParams.n_epochs}...')
             self.train_epoch()
 
             # Validation
@@ -373,7 +357,7 @@ class Trainer:
                 self.save_model(save_best=True)
 
             # early stopping
-            if self.early_stopping:
+            if self.trainParams.early_stopping:
                 if self.check_early_stopping(improvement):
                     print(f"Early stopping at {epoch}")
                     break
