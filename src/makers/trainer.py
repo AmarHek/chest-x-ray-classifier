@@ -39,14 +39,17 @@ class Trainer:
         self.augmentParams = augmentParams
 
         # get unique work dir and initialize it
-        # add exp_name to work_dir
-        self.work_dir = os.path.join(self.trainParams.work_dir, self.trainParams.exp_name)
-        # add current date and time to work_dir
-        self.work_dir = self.work_dir + "_" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        # update experiment name
-        self.trainParams.exp_name = os.path.basename(self.work_dir)
-        # create the work_dir
-        os.makedirs(self.work_dir)
+        if not self.trainParams.continue_train:
+            # add exp_name to work_dir
+            self.work_dir = os.path.join(self.trainParams.work_dir, self.trainParams.exp_name)
+            # add current date and time to work_dir
+            self.work_dir = self.work_dir + "_" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            # update experiment name
+            self.trainParams.exp_name = os.path.basename(self.work_dir)
+            # create the work_dir
+            os.makedirs(self.work_dir)
+        else:
+            self.work_dir = os.path.join(self.trainParams.work_dir, self.trainParams.exp_name)
 
         # device and seed
         self.seed = trainParams.seed
