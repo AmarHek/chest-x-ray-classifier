@@ -42,12 +42,12 @@ done
 
 for backbone in "${backbones_big[@]}"; do
   # Submit the script as a SLURM job with the current combination of model_name_or_path and dataset_names_or_paths
-  sbatch -p ls6prio --gres=gpu:3090:1 --wrap="python src/Scripts/train.py $config $backbone" -o $log_output -e $error_output
+  sbatch -p ls6prio --gres=gpu:rtx3090:1 --wrap="python src/Scripts/train.py $config $backbone" -o $log_output -e $error_output
 done
 
 for backbone in "${backbones_bigger[@]}"; do
   # Submit the script as a SLURM job with the current combination of model_name_or_path and dataset_names_or_paths
-  sbatch -p ls6prio --gres=gpu:4090:1 --wrap="python src/Scripts/train.py $config $backbone" -o $log_output -e $error_output
+  sbatch -p ls6prio --gres=gpu:rtx4090:1 --wrap="python src/Scripts/train.py $config $backbone" -o $log_output -e $error_output
 done
 
 # Deactivate the virtual environment
