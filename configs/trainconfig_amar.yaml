@@ -1,6 +1,6 @@
 trainParams:
   exp_name: "baseline"
-  work_dir: "/home/hekalo/experiments/"
+  work_dir: "/home/ls6/hekalo/experiments/"
   seed: 42
   logger: "tensorboard"
   update_steps: 10
