@@ -9,7 +9,7 @@ trainParams:
   max_keep_ckpts: 3
   batch_size: 32
   loss: "bce"
-  optimizer: "adam"
+  optimizer: "adamw"
   learning_rate: 0.0003
   metrics: ["auc", "f1", "prec", "rec"]
   validation_metric: "loss"
@@ -49,7 +49,7 @@ valDataParams:
   dataset: "chexpert"
   image_root_path: '/scratch/hekalo/Datasets/'
   csv_path: '/scratch/hekalo/Datasets/CheXpert-v1.0-small/valid.csv'
-  image_size: [224, 224]
+  image_size: [320, 320]
   image_format: 'jpeg'
   normalization: 'imagenet'
   augment: False

@@ -3,19 +3,19 @@ trainParams:
   work_dir: "/home/ls6/hekalo/experiments/"
   seed: 42
   logger: "tensorboard"
-  update_steps: 10
+  update_steps: 500
   n_epochs: 400
   save_epoch_freq: 1
   max_keep_ckpts: 3
   batch_size: 16
   loss: "bce"
-  optimizer: "adam"
+  optimizer: "adamw"
   learning_rate: 0.0003
   metrics: ["auc", "f1", "prec", "rec"]
   validation_metric: "loss"
   validation_metric_mode: "min"
   validation_epoch_freq: 1
-  validation_batch_size: 32
+  validation_batch_size: 16
   early_stopping: True
   early_stopping_patience: 20
   lr_policy: "cosine"
@@ -34,7 +34,7 @@ trainDataParams:
   dataset: "chexpert"
   image_root_path: '/scratch/hekalo/Datasets/'
   csv_path: '/scratch/hekalo/Datasets/CheXpert-v1.0-small/train.csv'
-  image_size: [320, 320]
+  image_size: [224, 224]
   image_format: 'jpeg'
   normalization: 'imagenet'
   augment: True
@@ -49,7 +49,7 @@ valDataParams:
   dataset: "chexpert"
   image_root_path: '/scratch/hekalo/Datasets/'
   csv_path: '/scratch/hekalo/Datasets/CheXpert-v1.0-small/valid.csv'
-  image_size: [224, 224]
+  image_size: [320, 320]
   image_format: 'jpeg'
   normalization: 'imagenet'
   augment: False
