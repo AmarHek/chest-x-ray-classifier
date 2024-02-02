@@ -439,7 +439,18 @@ class Trainer:
         self.model.load_state_dict(loaded_dict["model"])
         self.optimizer.load_state_dict(loaded_dict["optimizer"])
         self.current_epoch = loaded_dict["epoch"]
-        self.best_score = loaded_dict["best_score"]
-        self.current_score = loaded_dict["score"]
-        self.validation_metric = loaded_dict["validation_metric"]
-        self.validation_metric_mode = loaded_dict["validation_metric_mode"]
+
+        # update best score and current score depending on new settings
+        validation_metric = loaded_dict["validation_metric"]
+        if self.trainParams.validation_metric != validation_metric:
+            print(f"Detected validation metric {validation_metric} in checkpoint, which is different from "
+                  f"current validation metric {self.trainParams.validation_metric}. Resetting scores.")
+            if self.trainParams.validation_metric_mode == "max":
+                self.best_score = 0
+                self.current_score = 0
+            elif self.trainParams.validation_metric_mode == "min":
+                self.best_score = np.infty
+                self.current_score = np.infty
+        else:
+            self.best_score = loaded_dict["best_score"]
+            self.current_score = loaded_dict["score"]
