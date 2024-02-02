@@ -396,8 +396,7 @@ class Trainer:
         self.dataValParams.print_params()
         self.augmentParams.print_params()
 
-    def save_params(self, addTestParams: bool = True,
-                    testDataParams: DatasetParams = None):
+    def save_params(self):
         """
         Saves all parameters in the work_dir
         Args:
@@ -414,15 +413,6 @@ class Trainer:
                   'dataTrainParams': self.dataTrainParams.to_dict(),
                   'dataValParams': self.dataValParams.to_dict(),
                   'augmentParams': self.augmentParams.to_dict()}
-
-        if addTestParams:
-            testParams = {'exp_name': self.trainParams.exp_name,
-                          'work_dir': self.trainParams.work_dir,
-                          'metrics': self.trainParams.metrics}
-            params['testParams'] = testParams
-
-        if testDataParams is not None:
-            params['dataTestParams'] = testDataParams.to_dict()
 
         with open(os.path.join(self.work_dir, 'params.yaml'), 'w') as f:
             yaml.dump(params, f)

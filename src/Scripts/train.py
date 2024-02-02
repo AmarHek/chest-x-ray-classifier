@@ -61,8 +61,6 @@ if __name__ == "__main__":
     trainDataParams.load_from_dict(cfg["trainDataParams"])
     valDataParams = datasetParamsClass()
     valDataParams.load_from_dict(cfg["valDataParams"])
-    testDataParams = datasetParamsClass()
-    testDataParams.load_from_dict(cfg["testDataParams"])
     augmentParams = params.AugmentationParams()
     augmentParams.load_from_dict(cfg["augmentParams"])
 
@@ -75,6 +73,6 @@ if __name__ == "__main__":
                       augmentParams)
 
     trainer.print_params()
-    trainer.save_params(addTestParams=True, testDataParams=testDataParams)
+    trainer.save_params()
 
     trainer.train()
