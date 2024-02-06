@@ -13,25 +13,25 @@ config="/home/ls6/hekalo/Git/chest-x-ray-classifier/configs/trainconfig_label_de
 
 # Define label sets
 label_sets=(
-"'Cardiomegaly'"
-"'Cardiomegaly,Edema'"
-"'Cardiomegaly,Edema,Consolidation'"
-"'Cardiomegaly,Edema,Consolidation,Pleural Effusion'"
-"'Cardiomegaly,Edema,Consolidation,Pleural Effusion,Atelectasis'"
-"'Edema'"
-"'Edema,Consolidation'"
-"'Edema,Consolidation,Pleural Effusion'"
-"'Edema,Consolidation,Pleural Effusion,Atelectasis'"
-"'Consolidation'"
-"'Consolidation,Pleural Effusion'"
-"'Consolidation,Pleural Effusion,Atelectasis'"
-"'Pleural Effusion'"
-"'Pleural Effusion,Atelectasis'"
-"'Atelectasis'"
+"Cardiomegaly"
+"Cardiomegaly,Edema"
+"Cardiomegaly,Edema,Consolidation"
+"Cardiomegaly,Edema,Consolidation,Pleural Effusion"
+"Cardiomegaly,Edema,Consolidation,Pleural Effusion,Atelectasis"
+"Edema"
+"Edema,Consolidation'"
+"Edema,Consolidation,Pleural Effusion"
+"Edema,Consolidation,Pleural Effusion,Atelectasis"
+"Consolidation"
+"Consolidation,Pleural Effusion"
+"Consolidation,Pleural Effusion,Atelectasis"
+"Pleural Effusion"
+"Pleural Effusion,Atelectasis"
+"Atelectasis"
 )
 
 for label_set in "${label_sets[@]}"; do
-  sbatch -p ls6 --gres=gpu:1 --wrap="python src/Scripts/train.py $config --labels=$label_set" -o $log_output -e $error_output
+  sbatch -p ls6 --gres=gpu:1 --wrap="python src/Scripts/train.py $config --labels='$label_set'" -o $log_output -e $error_output
 done
 
 
