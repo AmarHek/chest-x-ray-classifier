@@ -257,7 +257,8 @@ class Tester:
         df_class = pd.DataFrame(columns=['Metric'] + self.labels)
         # populate the DataFrame
         for metric, values in class_metrics.items():
-            df_class = df_class.append({'Metric': metric, **dict(zip(self.labels, values))}, ignore_index=True)
+            temp_df = pd.DataFrame({'Metric': metric, **dict(zip(self.labels, values))}, index=[0])
+            df_class = pd.concat([df_class, temp_df], ignore_index=True)
 
         # Concatenate DataFrames along columns
         result_df = pd.merge(left=df_average, right=df_class, on='Metric', how='outer')
