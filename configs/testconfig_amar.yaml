@@ -5,10 +5,11 @@ testParams:
   metrics: ["auc", "f1", "prec", "rec", "auc_class", "f1_class", "prec_class"]
   threshold: 0.5
   batch_size: 16
+  overwrite: True
 testDataParams:
   dataset: "chexpert"
   image_root_path: '/scratch/hekalo/Datasets/'
-  csv_path: '/scratch/hekalo/Datasets/CheXpert-v1.0-small/valid.csv'
+  csv_path: '/scratch/hekalo/Datasets/CheXpert-v1.0-small/test.csv'
   image_size: [224, 224]
   image_format: 'jpeg'
   normalization: 'imagenet'
