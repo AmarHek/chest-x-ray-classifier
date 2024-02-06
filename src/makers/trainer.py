@@ -314,7 +314,7 @@ class Trainer:
         self.log(mode="val")
 
         # Clear memory
-        del images, labels, loss
+        del images, labels, output, loss, ground_truth, predictions
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
