@@ -40,10 +40,13 @@ def merge_args(args,
         print(f"Set backbone to {args.backbone} and exp_name "
               f"to {trainParams.exp_name}")
     if args.labels is not None:
+        label_num = len(args.labels.split(","))
         trainDataParams.train_labels = args.labels.split(",")
         valDataParams.train_labels = args.labels.split(",")
         trainParams.exp_name = trainParams.exp_name + f"_{args.labels}"
-        print(f"Set labels to {args.labels}")
+        # update the number of classes in the model
+        modelParams.num_classes = label_num
+        print(f"Set labels to {args.labels} and updated num_classes to {label_num}")
     if args.batch_size is not None:
         trainParams.batch_size = args.batch_size
         print(f"Set batch size to {args.batch_size}")
