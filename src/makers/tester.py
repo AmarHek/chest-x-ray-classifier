@@ -5,7 +5,6 @@ import pandas as pd
 import torch.cuda
 from torch.utils.data import DataLoader
 import torchvision.transforms as tfs
-from tqdm import tqdm
 
 from components import load_metrics
 from datasets import load_dataset
@@ -276,7 +275,7 @@ class Tester:
         self.filenames = []
 
         with torch.no_grad():
-            for data in tqdm(self.test_loader, total=len(self.test_loader)):
+            for data in self.test_loader:
                 # extract data
                 images = data['image']
                 labels = data['label']

@@ -7,11 +7,10 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 import os
-from tqdm import tqdm
 
 from components import get_optimizer, get_loss, get_scheduler, load_metrics
 from datasets import load_dataset
-from params import TrainParams, DatasetParams, AugmentationParams
+from params import TrainParams, AugmentationParams
 from models import load_model
 
 
@@ -235,7 +234,7 @@ class Trainer:
         # reset running metrics
         self.reset_scores(mode="train")
 
-        for batch, data in tqdm(enumerate(self.train_loader), total=len(self.train_loader)):
+        for batch, data in enumerate(self.train_loader):
             # extract data
             images = data["image"]
             labels = data["label"]
