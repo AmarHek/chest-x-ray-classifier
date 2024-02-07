@@ -41,7 +41,7 @@ trainDataParams:
   mode: 'train'
   shuffle: True
   lsr_method: "dam"
-  use_upsampling: True
+  use_upsampling: False
   scan_orientation: "frontal"
   scan_projection: "all"
   train_labels: ['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion']
