@@ -227,7 +227,7 @@ class Trainer:
             # Update loss metrics after each batch
             self.train_loss += loss.item()
             for metric in self.train_metrics.keys():
-                self.train_metrics[metric].update((pred, labels.int()))
+                self.train_metrics[metric].update(pred, labels.int())
 
             # Logging
             if (batch + 1) % self.trainParams.update_steps == 0:
@@ -275,7 +275,7 @@ class Trainer:
                 # update validation loss and metric state after each batch
                 self.val_loss += loss.item()
                 for metric in self.val_metrics.keys():
-                    self.val_metrics[metric].update((output, labels.int()))
+                    self.val_metrics[metric].update(output, labels.int())
 
         # average loss
         self.val_loss /= len(self.val_loader)
