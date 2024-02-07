@@ -77,12 +77,20 @@ class Trainer:
         self.optimizer = get_optimizer(model=self.model,
                                        loss_fn=self.loss,
                                        **self.trainParams.to_dict())
-        self.metrics = load_metrics(trainParams.metrics,
-                                    num_classes=self.modelParams.num_classes,
-                                    threshold=trainParams.threshold,
-                                    task='multilabel',
-                                    device=self.device)
-        self.train_scores, self.val_scores = self.init_scores()
+
+        # loss and metrics trackers
+        self.train_loss = 0
+        self.train_metrics = load_metrics(trainParams.metrics,
+                                          num_classes=self.modelParams.num_classes,
+                                          threshold=trainParams.threshold,
+                                          task='multilabel',
+                                          device=self.device)
+        self.val_loss = 0
+        self.val_metrics = load_metrics(trainParams.metrics,
+                                        num_classes=self.modelParams.num_classes,
+                                        threshold=trainParams.threshold,
+                                        task='multilabel',
+                                        device=self.device)
 
         # logging and saving
         self.early_stopping_tracker = 0
@@ -97,8 +105,6 @@ class Trainer:
         # validation
         if trainParams.validation_metric != "loss":
             assert trainParams.validation_metric in trainParams.metrics, "Validation metric not in metrics!"
-        self.validation_metric = trainParams.validation_metric
-        self.validation_metric_mode = trainParams.validation_metric_mode
         # init best score depending on score criterion
         if self.trainParams.validation_metric_mode == "max":
             self.best_score = 0
@@ -149,73 +155,34 @@ class Trainer:
 
         return condition
 
-    def init_scores(self):
-        train_scores = {'loss': 0}
-        val_scores = {'loss': 0}
-        for metric in self.metrics.keys():
-            if metric.endswith("_class"):
-                train_scores[metric] = torch.zeros(self.modelParams.num_classes).to(self.device)
-                val_scores[metric] = torch.zeros(self.modelParams.num_classes).to(self.device)
-            else:
-                train_scores[metric] = 0
-                val_scores[metric] = 0
-        return train_scores, val_scores
-
-    def update_scores(self, pred, labels, mode: str = "train"):
-        if mode == "train":
-            for metric in self.metrics.keys():
-                if metric.endswith("_class"):
-                    # compute per class metrics
-                    old_score = self.train_scores[metric]
-                    new_score = self.metrics[metric](pred, labels.int())
-                    self.train_scores[metric] = torch.add(old_score, new_score)
-                else:
-                    # compute remaining metrics
-                    self.train_scores[metric] += self.metrics[metric](pred, labels.int())
-        elif mode == "val":
-            for metric in self.metrics.keys():
-                # compute remaining metrics
-                # no distinction necessary for val since we compute on entire dataset
-                self.val_scores[metric] = self.metrics[metric](pred, labels.int())
-        else:
-            raise ValueError("Invalid mode!")
-
-    def reset_scores(self):
-        for metric in self.train_scores.keys():
-            if metric.endswith("_class"):
-                self.train_scores[metric] = torch.zeros(self.modelParams.num_classes).to(self.device)
-            else:
-                self.train_scores[metric] = 0
-        for metric in self.val_scores.keys():
-            if metric.endswith("_class"):
-                self.val_scores[metric] = torch.zeros(self.modelParams.num_classes).to(self.device)
-            else:
-                self.val_scores[metric] = 0
-
     def log(self, mode: str = "train", batch: int = None):
         if mode == "train":
-            scores = self.train_scores
-            divider = (batch + 1)
-            log_output = f'[Epoch {self.current_epoch + 1}, Batch {batch + 1:5d}]: '
+            loss = self.train_loss / (batch + 1)
+            metrics = self.train_metrics
+            log_output = f'[Epoch {self.current_epoch}, Batch {batch + 1:5d}]: '
             step = self.current_epoch * (batch + 1)
         elif mode == "val":
-            scores = self.val_scores
-            divider = len(self.val_loader)
-            log_output = f'Validation Scores at epoch {self.current_epoch + 1}: '
+            loss = self.val_loss
+            metrics = self.val_metrics
+            log_output = f'Validation Scores at epoch {self.current_epoch}: '
             step = self.current_epoch * len(self.train_loader)
         else:
             raise ValueError("Invalid mode!")
 
-        for metric in scores.keys():
-            # average loss and metrics at current batch
-            score = scores[metric] / divider
+        # add loss first
+        log_output += f"Loss: {loss:.4f}" + " | "
+
+        for metric in metrics.keys():
             if self.logger is not None:
                 if metric.endswith("_class"):
                     # No verbosity for class metrics, only logging
+                    # get scores
+                    scores = metrics[metric].compute()
                     for i, label in enumerate(self.train_set.train_labels):
-                        self.logger.add_scalar(f"{metric.capitalize()}/{label}/{mode}", score[i], step)
+                        self.logger.add_scalar(f"{metric.capitalize()}/{label}/{mode}", scores[i], step)
                 else:
-                    # average metrics are printed and logged
+                    # average metrics are computed, printed and logged
+                    score = metrics[metric].compute()
                     log_output += f"{metric.capitalize()}: {score:.4f}" + " | "
                     self.logger.add_scalar(f"{metric.capitalize()}/{mode}", score, step)
 
@@ -224,13 +191,18 @@ class Trainer:
         print(log_output)
 
         # delete all temporary variables
-        del scores, divider, log_output, step
+        del scores, log_output, step
 
     def train_epoch(self):
         # training for a single epoch
 
         # switch model to training mode
         self.model.train()
+
+        # reset metrics and loss at start of epoch
+        self.train_loss = 0
+        for metric in self.train_metrics.keys():
+            self.train_metrics[metric].reset()
 
         for batch, data in enumerate(self.train_loader):
             # extract data
@@ -252,11 +224,10 @@ class Trainer:
             loss.backward()
             self.optimizer.step()
 
-            # track loss after each batch
-            self.train_scores["loss"] += loss.item()
-
-            # Update metrics after each batch
-            self.update_scores(pred, labels, mode="train")
+            # Update loss metrics after each batch
+            self.train_loss += loss.item()
+            for metric in self.train_metrics.keys():
+                self.train_metrics[metric].update((pred, labels.int()))
 
             # Logging
             if (batch + 1) % self.trainParams.update_steps == 0:
@@ -274,9 +245,14 @@ class Trainer:
         # Put model in eval mode
         self.model.eval()
 
-        # tensors to collect predictions and ground truths
-        predictions = torch.FloatTensor().to(self.device)
-        ground_truth = torch.FloatTensor().to(self.device)
+        # # tensors to collect predictions and ground truths
+        # predictions = torch.FloatTensor().to(self.device)
+        # ground_truth = torch.FloatTensor().to(self.device)
+
+        # reset validation loss and scores
+        self.val_loss = 0
+        for metric in self.val_metrics.keys():
+            self.val_metrics[metric].reset()
 
         with torch.no_grad():
             for batch, data in enumerate(self.val_loader):
@@ -293,23 +269,22 @@ class Trainer:
                 loss = self.loss(output, labels)
 
                 # update containers
-                ground_truth = torch.cat((ground_truth, labels), 0)
-                predictions = torch.cat((predictions, output), 0)
+                # ground_truth = torch.cat((ground_truth, labels), 0)
+                # predictions = torch.cat((predictions, output), 0)
 
-                # update validation loss after each batch
-                self.val_scores['loss'] += loss.item()
+                # update validation loss and metric state after each batch
+                self.val_loss += loss.item()
+                for metric in self.val_metrics.keys():
+                    self.val_metrics[metric].update((output, labels.int()))
 
         # average loss
-        self.val_scores['loss'] /= len(self.val_loader)
-
-        # update metrics
-        self.update_scores(predictions, ground_truth, mode="val")
+        self.val_loss /= len(self.val_loader)
 
         # Logging
         self.log(mode="val")
 
         # Clear memory
-        del images, labels, output, loss, ground_truth, predictions, batch, data
+        del images, labels, output, loss, batch, data
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
@@ -336,9 +311,6 @@ class Trainer:
 
         for epoch in range(self.trainParams.n_epochs):
             self.current_epoch += 1
-
-            # reset scores
-            self.reset_scores()
 
             # Training
             print(f'Training at epoch {self.current_epoch}/{self.trainParams.n_epochs}...')
