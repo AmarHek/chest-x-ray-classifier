@@ -29,10 +29,10 @@ class Trainer:
                  ):
 
         # some assertions
-        assert dataTrainParams.train_labels == dataValParams.train_labels \
-            , "Train and validation labels do not match!"
-        assert modelParams.num_classes == len(dataTrainParams.train_labels) \
-            , "Number of classes does not match number of labels!"
+        assert dataTrainParams.train_labels == dataValParams.train_labels, \
+            "Train and validation labels do not match!"
+        assert modelParams.num_classes == len(dataTrainParams.train_labels), \
+            "Number of classes does not match number of labels!"
 
         # track params
         self.trainParams = trainParams
@@ -180,33 +180,29 @@ class Trainer:
         else:
             raise ValueError("Invalid mode!")
 
-    def reset_scores(self, mode: str = "train"):
-        if mode == "train":
-            for metric in self.train_scores.keys():
-                if metric.endswith("_class"):
-                    self.train_scores[metric] = torch.zeros(self.modelParams.num_classes).to(self.device)
-                else:
-                    self.train_scores[metric] = 0
-        elif mode == "val":
-            for metric in self.val_scores.keys():
-                if metric.endswith("_class"):
-                    self.val_scores[metric] = torch.zeros(self.modelParams.num_classes).to(self.device)
-                else:
-                    self.val_scores[metric] = 0
-        else:
-            raise ValueError("Invalid mode!")
+    def reset_scores(self):
+        for metric in self.train_scores.keys():
+            if metric.endswith("_class"):
+                self.train_scores[metric] = torch.zeros(self.modelParams.num_classes).to(self.device)
+            else:
+                self.train_scores[metric] = 0
+        for metric in self.val_scores.keys():
+            if metric.endswith("_class"):
+                self.val_scores[metric] = torch.zeros(self.modelParams.num_classes).to(self.device)
+            else:
+                self.val_scores[metric] = 0
 
     def log(self, mode: str = "train", batch: int = None):
         if mode == "train":
             scores = self.train_scores
             divider = (batch + 1)
             log_output = f'[Epoch {self.current_epoch + 1}, Batch {batch + 1:5d}]: '
-            step = (self.current_epoch + 1) * (batch + 1)
+            step = self.current_epoch * (batch + 1)
         elif mode == "val":
             scores = self.val_scores
             divider = len(self.val_loader)
             log_output = f'Validation Scores at epoch {self.current_epoch + 1}: '
-            step = (self.current_epoch + 1) * len(self.train_loader)
+            step = self.current_epoch * len(self.train_loader)
         else:
             raise ValueError("Invalid mode!")
 
@@ -235,9 +231,6 @@ class Trainer:
 
         # switch model to training mode
         self.model.train()
-
-        # reset running metrics
-        self.reset_scores(mode="train")
 
         for batch, data in enumerate(self.train_loader):
             # extract data
@@ -280,9 +273,6 @@ class Trainer:
 
         # Put model in eval mode
         self.model.eval()
-
-        # reset loss and metrics
-        self.reset_scores(mode="val")
 
         # tensors to collect predictions and ground truths
         predictions = torch.FloatTensor().to(self.device)
@@ -347,13 +337,16 @@ class Trainer:
         for epoch in range(self.trainParams.n_epochs):
             self.current_epoch += 1
 
+            # reset scores
+            self.reset_scores()
+
             # Training
-            print(f'Training at epoch {epoch + 1}/{self.trainParams.n_epochs}...')
+            print(f'Training at epoch {self.current_epoch}/{self.trainParams.n_epochs}...')
             self.train_epoch()
 
             # Validation
             self.validate()
-            self.current_score = self.val_scores[self.trainParams.validation_metric]
+            self.current_score = self.val_scores[self.trainParams.validation_metric].item()
 
             # update learning rate
             if self.trainParams.lr_policy == "plateau":
@@ -400,16 +393,6 @@ class Trainer:
         self.augmentParams.print_params()
 
     def save_params(self):
-        """
-        Saves all parameters in the work_dir
-        Args:
-            addTestParams: If true, creates entry testParams for easier testing
-            testDataParams (optional): Can be passed to automatically add parameters for test dataset
-
-        Returns:
-
-        """
-
         # convert params to dicts
         params = {'trainParams': self.trainParams.to_dict(),
                   'modelParams': self.modelParams.to_dict(),
