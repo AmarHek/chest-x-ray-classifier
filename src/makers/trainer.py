@@ -85,6 +85,7 @@ class Trainer:
         self.train_scores, self.val_scores = self.init_scores()
 
         # logging and saving
+        self.early_stopping_tracker = 0
         self.saved_checkpoints = []
         # initialize logger
         if self.trainParams.logger == "tensorboard":
@@ -131,12 +132,12 @@ class Trainer:
     def check_early_stopping(self) -> bool:
         if self.validation_improvement():
             print("Improvement detected, resetting early stopping patience.")
-            self.trainParams.early_stopping_tracker = 0
+            self.early_stopping_tracker = 0
         else:
-            self.trainParams.early_stopping_tracker += 1
-            print(f"No improvement. Incrementing Early Stopping tracker to {self.trainParams.early_stopping_tracker}")
+            self.early_stopping_tracker += 1
+            print(f"No improvement. Incrementing Early Stopping tracker to {self.early_stopping_tracker}")
 
-        return self.trainParams.early_stopping_tracker > self.trainParams.early_stopping_patience
+        return self.early_stopping_tracker > self.trainParams.early_stopping_patience
 
     def validation_improvement(self) -> bool:
         if self.trainParams.validation_metric_mode == "max":
