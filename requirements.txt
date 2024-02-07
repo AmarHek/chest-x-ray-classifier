@@ -5,6 +5,7 @@ torchmetrics
 tensorboard
 libauc
 numpy
+natsort
 pyyaml
 opencv-python
 pandas
