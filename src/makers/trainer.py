@@ -1,12 +1,16 @@
 from datetime import datetime
+import os
+from natsort import natsorted
+
+# DEBUG
+import psutil
+import warnings
 
 import numpy as np
 import torch.cuda
 import yaml
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-
-import os
 
 from components import get_optimizer, get_loss, get_scheduler, load_metrics
 from datasets import load_dataset
@@ -124,11 +128,8 @@ class Trainer:
 
         return train_loader, valid_loader
 
-    def set_summary_writer(self, location: str = None, comment: str = ""):
-        self.logger = SummaryWriter(log_dir=location, comment=comment)
-
-    def check_early_stopping(self, improvement: bool) -> bool:
-        if improvement:
+    def check_early_stopping(self) -> bool:
+        if self.validation_improvement():
             print("Improvement detected, resetting early stopping patience.")
             self.trainParams.early_stopping_tracker = 0
         else:
@@ -225,6 +226,9 @@ class Trainer:
         log_output = log_output[:-3]
         print(log_output)
 
+        # delete all temporary variables
+        del scores, divider, log_output, step
+
     def train_epoch(self):
         # training for a single epoch
 
@@ -265,7 +269,7 @@ class Trainer:
                 self.log(mode="train", batch=batch)
 
         # clear memory
-        del images, labels, loss
+        del images, labels, loss, pred, batch, data
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
@@ -314,7 +318,7 @@ class Trainer:
         self.log(mode="val")
 
         # Clear memory
-        del images, labels, output, loss, ground_truth, predictions
+        del images, labels, output, loss, ground_truth, predictions, batch, data
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
@@ -329,6 +333,15 @@ class Trainer:
 
         # set model to device
         self.model.to(self.device)
+
+        # DEBUG
+        warnings.warn("DEBUG MODE: Memory usage will be printed after each epoch.")
+        print("DEBUG: CPU usage at start of training:")
+        print(psutil.cpu_percent())
+        print("DEBUG: Memory usage at start of training:")
+        print(psutil.virtual_memory())
+        print("DEBUG: remaining memory:")
+        print(psutil.virtual_memory().available)
 
         for epoch in range(self.trainParams.n_epochs):
             self.current_epoch += 1
@@ -352,17 +365,24 @@ class Trainer:
                 self.save_model(save_best=False)
 
             # save best model
-            improvement = self.validation_improvement()
-            if improvement:
+            if self.validation_improvement():
                 print(f'Model improved at epoch {epoch}, saving model.')
                 self.best_score = self.current_score
                 self.save_model(save_best=True)
 
             # early stopping
             if self.trainParams.early_stopping:
-                if self.check_early_stopping(improvement):
+                if self.check_early_stopping():
                     print(f"Early stopping at {epoch}")
                     break
+
+            warnings.warn("DEBUG MODE: Memory usage after epoch:")
+            print("DEBUG: CPU usage:")
+            print(psutil.cpu_percent())
+            print("DEBUG: Memory usage:")
+            print(psutil.virtual_memory())
+            print("DEBUG: remaining memory:")
+            print(psutil.virtual_memory().available)
 
     def print_params(self):
         if self.trainParams.continue_train:
@@ -431,7 +451,7 @@ class Trainer:
         if not checkpoints:
             raise FileNotFoundError("No checkpoint found in %s" % self.trainParams.work_dir)
 
-        checkpoints.sort()
+        checkpoints = natsorted(checkpoints)
         load_path = os.path.join(self.trainParams.work_dir, checkpoints[-1])
 
         loaded_dict = torch.load(load_path)
