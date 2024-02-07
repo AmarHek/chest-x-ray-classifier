@@ -129,8 +129,8 @@ class Trainer:
 
         return train_loader, valid_loader
 
-    def check_early_stopping(self) -> bool:
-        if self.validation_improvement():
+    def check_early_stopping(self, improved: bool) -> bool:
+        if improved:
             print("Improvement detected, resetting early stopping patience.")
             self.early_stopping_tracker = 0
         else:
@@ -346,7 +346,11 @@ class Trainer:
 
             # Validation
             self.validate()
-            self.current_score = self.val_scores[self.trainParams.validation_metric].item()
+
+            if self.trainParams.validation_metric != "loss":
+                self.current_score = self.val_metrics[self.trainParams.validation_metric].compute()
+            else:
+                self.current_score = self.val_loss
 
             # update learning rate
             if self.trainParams.lr_policy == "plateau":
@@ -358,15 +362,15 @@ class Trainer:
             if (self.current_epoch % self.trainParams.save_epoch_freq) == 0:
                 self.save_model(save_best=False)
 
+            improved = self.validation_improvement()
             # save best model
-            if self.validation_improvement():
-                print(f'Model improved at epoch {epoch}, saving model.')
+            if improved:
+                print(f'Model improved at epoch {self.current_epoch}, saving model.')
                 self.best_score = self.current_score
                 self.save_model(save_best=True)
-
             # early stopping
             if self.trainParams.early_stopping:
-                if self.check_early_stopping():
+                if self.check_early_stopping(improved):
                     print(f"Early stopping at {epoch}")
                     break
 
