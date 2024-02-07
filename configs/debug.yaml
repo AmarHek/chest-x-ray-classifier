@@ -1,5 +1,5 @@
 trainParams:
-  exp_name: "baseline"
+  exp_name: "debug"
   work_dir: "/home/ls6/hekalo/experiments/"
   seed: 42
   logger: "tensorboard"
@@ -7,15 +7,15 @@ trainParams:
   n_epochs: 400
   save_epoch_freq: 1
   max_keep_ckpts: 3
-  batch_size: 16
+  batch_size: 128
   loss: "bce"
   optimizer: "adamw"
-  learning_rate: 0.0003
+  learning_rate: 0.001
   metrics: ["auc", "f1", "prec", "rec", "auc_class", "prec_class", "rec_class"]
   validation_metric: "loss"
   validation_metric_mode: "min"
   validation_epoch_freq: 1
-  validation_batch_size: 16
+  validation_batch_size: 128
   early_stopping: True
   early_stopping_patience: 20
   lr_policy: "cosine"
