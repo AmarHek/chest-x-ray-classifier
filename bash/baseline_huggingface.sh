@@ -20,7 +20,7 @@ backbones=(
 "Xrenya/pvt-medium-224"
 )
 
-for backbone in "${backbones_bigger[@]}"; do
+for backbone in "${backbones[@]}"; do
   # Submit the script as a SLURM job with the current combination of model_name_or_path and dataset_names_or_paths
   sbatch -p ls6prio --gres=gpu:rtx4090:1 --wrap="python src/Scripts/train.py $config --backbone=$backbone" -o $log_output -e $error_output
 done
