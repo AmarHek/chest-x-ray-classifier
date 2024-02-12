@@ -2,10 +2,6 @@ from datetime import datetime
 import os
 from natsort import natsorted
 
-# DEBUG
-import psutil
-import warnings
-
 import numpy as np
 import torch.cuda
 import yaml
@@ -171,6 +167,7 @@ class Trainer:
 
         # add loss first
         log_output += f"Loss: {loss:.4f}" + " | "
+        self.logger.add_scalar(f"Loss/{mode}", loss, step)
 
         for metric in metrics.keys():
             if self.logger is not None:
@@ -300,15 +297,6 @@ class Trainer:
         # set model to device
         self.model.to(self.device)
 
-        # DEBUG
-        warnings.warn("DEBUG MODE: Memory usage will be printed after each epoch.")
-        print("DEBUG: CPU usage at start of training:")
-        print(psutil.cpu_percent())
-        print("DEBUG: Memory usage at start of training:")
-        print(psutil.virtual_memory())
-        print("DEBUG: remaining memory:")
-        print(psutil.virtual_memory().available)
-
         for epoch in range(self.trainParams.n_epochs):
             self.current_epoch += 1
 
@@ -345,14 +333,6 @@ class Trainer:
                 if self.check_early_stopping(improved):
                     print(f"Early stopping at {epoch}")
                     break
-
-            warnings.warn("DEBUG MODE: Memory usage after epoch:")
-            print("DEBUG: CPU usage:")
-            print(psutil.cpu_percent())
-            print("DEBUG: Memory usage:")
-            print(psutil.virtual_memory())
-            print("DEBUG: remaining memory:")
-            print(psutil.virtual_memory().available)
 
     def print_params(self):
         if self.trainParams.continue_train:
