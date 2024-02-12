@@ -36,7 +36,7 @@ def merge_args(args,
               f"to {trainParams.exp_name}")
     if args.backbone is not None:
         modelParams.backbone = args.backbone
-        trainParams.exp_name = trainParams.exp_name + f"_{args.backbone}"
+        trainParams.exp_name = trainParams.exp_name + f"_{args.backbone.replace('/', '_')}"
         print(f"Set backbone to {args.backbone} and exp_name "
               f"to {trainParams.exp_name}")
     if args.labels is not None:
