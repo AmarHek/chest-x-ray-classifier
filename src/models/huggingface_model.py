@@ -29,7 +29,7 @@ if __name__ == "__main__":
     dummy_input = torch.zeros(4, 3, 224, 224)
 
     model_params = HuggingfaceModelParams()
-    model_params.model_name = "microsoft/swinv2-base-patch4-window16-256"
+    model_params.backbone = "microsoft/swinv2-base-patch4-window16-256"
     model_params.head = "csra"
     model_params.num_heads = 4
     model_params.lam = 0.1
