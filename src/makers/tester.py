@@ -317,6 +317,9 @@ class Tester:
             if self.compute_metrics:
                 self.update_metrics()
                 self.write_metrics(model_path)
+                # reset torchmetrics metrics
+                for metric in self.metrics.keys():
+                    self.metrics[metric].reset()
             print("Done.")
 
         print("Testing done.")
