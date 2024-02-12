@@ -1,3 +1,4 @@
+import torchvision
 from dataclasses import dataclass
 
 from params.base_params import BaseParams
@@ -31,7 +32,20 @@ class PretrainedModelParams(ModelParams):
     num_heads: int = 1
     lam: float = 0.1
 
-    # more classifier params can be added here
+
+@dataclass
+class HuggingfaceModelParams(ModelParams):
+    name = "Huggingface Model Parameters"
+    model_name: str = "facebook/dinov2-base"
+
+    # classifier
+    head: str = "linear"  # [linear | csra | none]
+    classifier_function: str = "sigmoid"  # [sigmoid | softmax | logsoftmax | logsigmoid]
+    num_classes: int = 1
+
+    # csra params
+    num_heads: int = 1
+    lam: float = 0.1
 
 
 @dataclass
@@ -43,5 +57,6 @@ class CustomModelParams(ModelParams):
 
 model_param_selector = {
     "pretrained": PretrainedModelParams,
+    "huggingface": HuggingfaceModelParams,
     "custom": CustomModelParams
 }
