@@ -36,7 +36,7 @@ class PretrainedModelParams(ModelParams):
 @dataclass
 class HuggingfaceModelParams(ModelParams):
     name = "Huggingface Model Parameters"
-    model_name: str = "facebook/dinov2-base"
+    backbone: str = "facebook/dinov2-base"
 
     # classifier
     head: str = "linear"  # [linear | csra | none]
