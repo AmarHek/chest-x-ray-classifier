@@ -1,13 +1,13 @@
 trainParams:
   exp_name: "label_dependency"
-  work_dir: "/home/ls6/hekalo/experiments/"
+  work_dir: "/home/ls6/hekalo/experiments/label_dependency/"
   seed: 42
   logger: "tensorboard"
   update_steps: 10
   n_epochs: 400
   save_epoch_freq: 1
   max_keep_ckpts: 3
-  batch_size: 32
+  batch_size: 64
   loss: "bce"
   optimizer: "adamw"
   learning_rate: 0.0003

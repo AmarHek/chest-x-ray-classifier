@@ -10,8 +10,8 @@ trainParams:
   batch_size: 128
   loss: "bce"
   optimizer: "adamw"
-  learning_rate: 0.001
-  metrics: ["auc", "f1", "prec", "rec", "auc_class", "prec_class", "rec_class"]
+  learning_rate: 0.0003
+  metrics: ["auc", "f1", "prec", "rec", "auc_class", "f1_class"]
   validation_metric: "loss"
   validation_metric_mode: "min"
   validation_epoch_freq: 1
