@@ -120,8 +120,8 @@ class Tester:
         model_paths = []
         for root, dirs, files in os.walk(self.work_dir):
             if self._best_model_exists(root):
-                print(f"Found existing model in {root}.")
                 if self._outputs_exist(root):
+                    print(f"Found existing model in {root}.")
                     if self.overwrite:
                         print(f"Found existing outputs in {root}, but overwrite is enabled, adding to model_paths.")
                         model_paths.append(root)
