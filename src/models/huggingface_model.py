@@ -13,7 +13,7 @@ class HuggingfaceModel(nn.Module):
         super(HuggingfaceModel, self).__init__()
         self.model_params = model_params
 
-        self.base_model = AutoModelForImageClassification.from_pretrained(self.model_params.model_name)
+        self.base_model = AutoModelForImageClassification.from_pretrained(self.model_params.backbone)
         num_features = self.base_model.classifier.in_features
 
         head = classifier_head(in_features=num_features, **self.model_params.to_dict())
