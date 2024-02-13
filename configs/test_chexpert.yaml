@@ -5,6 +5,7 @@ testParams:
   metrics: ["auc", "f1", "prec", "rec", "auc_class", "f1_class", "prec_class"]
   threshold: 0.5
   batch_size: 16
+  overwrite: True
 testDataParams:
   dataset: "chexpert"
   image_root_path: '/scratch/hekalo/Datasets/'

@@ -18,6 +18,8 @@ backbones=(
 "facebook/convnextv2-base-1k-224"
 "snap-research/efficientformer-l1-300"
 "Xrenya/pvt-medium-224"
+"microsoft/swinv2-base-patch4-window8-256"
+"microsoft/swin-base-patch4-window7-224"
 )
 
 for backbone in "${backbones[@]}"; do
