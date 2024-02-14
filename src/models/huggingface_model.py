@@ -50,8 +50,9 @@ class HuggingfaceModel(nn.Module):
             patch_tokens = sequence_output[:, 1:]
             classifier_input = torch.cat([cls_token, patch_tokens.mean(dim=1)], dim=1)
         elif "efficientformer" in self.model_params.backbone:
-            classifier_input = transformer_output[0]
-        elif "vit" in self.model_params.backbone:
+            sequence_output = transformer_output[0]
+            classifier_input = sequence_output.mean(-2)
+        elif any(backbone in self.model_params.backbone for backbone in ["vit", "pvt"]):
             sequence_output = transformer_output[0]
             classifier_input = sequence_output[:, 0, :]
         else:
