@@ -1,20 +1,7 @@
 testParams:
   automatic: True
-<<<<<<< HEAD
-  work_dir: "./experiments/"
+  work_dir: "/home/ls6/hekalo/experiments/"
   device: "cuda"
-  metrics: ["auc", "f1", "prec", "rec", "auc_class", "f1_class", "prec_class"]
-  threshold: 0.5
-  batch_size: 16
-  model_paths: []
-testDataParams:
-  dataset: "chexpert"
-  image_root_path: '/scratch/hekalo/Datasets/'
-  csv_path: '/scratch/hekalo/Datasets/CheXpert-v1.0-small/train.csv'
-  image_size: [320, 320]
-=======
-  work_dir: "/home/ls6/hekalo/experiments/baseline/"
-  device: "cpu"
   metrics: ["auc", "f1", "prec", "rec", "auc_class", "f1_class", "prec_class"]
   threshold: 0.5
   batch_size: 16
@@ -24,12 +11,11 @@ testDataParams:
   image_root_path: '/scratch/hekalo/Datasets/'
   csv_path: '/scratch/hekalo/Datasets/CheXpert-v1.0-small/test.csv'
   image_size: [224, 224]
->>>>>>> b2f4cb3a076b7a5a1b6ed930dfa5b08534d34de1
   image_format: 'jpeg'
   normalization: 'imagenet'
   augment: False
   mode: 'test'
-  shuffle: False
+  shuffle: True
   lsr_method: "dam"
   use_upsampling: False
   scan_orientation: "frontal"

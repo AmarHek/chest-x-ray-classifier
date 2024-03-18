@@ -1,27 +1,27 @@
 trainParams:
-  exp_name: "debug"
-  work_dir: "/home/ls6/hekalo/experiments/"
+  exp_name: "baseline"
+  work_dir: "/home/ls6/hekalo/experiments/baseline/"
   seed: 42
   logger: "tensorboard"
   update_steps: 500
   n_epochs: 400
   save_epoch_freq: 1
   max_keep_ckpts: 3
-  batch_size: 128
+  batch_size: 64
   loss: "bce"
   optimizer: "adamw"
   learning_rate: 0.0003
-  metrics: ["auc", "f1", "prec", "rec", "auc_class", "f1_class"]
+  metrics: ["auc", "f1", "prec", "rec", "auc_class", "prec_class", "rec_class"]
   validation_metric: "loss"
   validation_metric_mode: "min"
   validation_epoch_freq: 1
-  validation_batch_size: 128
+  validation_batch_size: 16
   early_stopping: True
   early_stopping_patience: 20
   lr_policy: "cosine"
 modelParams:
   model_type: "pretrained"
-  backbone: "vit_l_32"
+  backbone: "densenet169"
   weights: "DEFAULT"
   freeze_depth: -1
   dropout: 0.5

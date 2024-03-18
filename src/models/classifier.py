@@ -23,18 +23,21 @@ class LinearClassifier(nn.Module):
 
 class CSRABase(nn.Module):
     # one basic block
-    def __init__(self, input_dim, num_classes, T, lam):
+    def __init__(self, input_dim, num_classes, T, lam, linear_input: bool = False):
         super(CSRABase, self).__init__()
         self.T = T      # temperature
         self.lam = lam  # Lambda
-        self.head = nn.Conv2d(input_dim, num_classes, 1, bias=False)
+        if linear_input:
+            self.head = nn.Linear(input_dim, num_classes, bias=False)
+        else:
+            self.head = nn.Conv2d(input_dim, num_classes, 1, bias=False)
         self.softmax = nn.Softmax(dim=2)
 
     def forward(self, x):
         # x (B d H W)
         # normalize classifier
         # score (B C HxW)
-        score = self.head(x) / torch.norm(self.head.weight, dim=1, keepdim=True).transpose(0,1)
+        score = self.head(x) / torch.norm(self.head.weight, dim=1, keepdim=True).transpose(0, 1)
         score = score.flatten(2)
         base_logit = torch.mean(score, dim=2)
 
@@ -56,11 +59,11 @@ class CSRA(nn.Module):  # multi-head attention
         8: [1, 2, 3, 4, 5, 6, 7, 99]
     }
 
-    def __init__(self, num_heads, lam, input_dim, num_classes):
+    def __init__(self, num_heads, lam, input_dim, num_classes, linear_input: bool = False):
         super(CSRA, self).__init__()
         self.temp_list = self.temp_settings[num_heads]
         self.multi_head = nn.ModuleList([
-            CSRABase(input_dim, num_classes, self.temp_list[i], lam)
+            CSRABase(input_dim, num_classes, self.temp_list[i], lam, linear_input=linear_input)
             for i in range(num_heads)
         ])
 
@@ -86,7 +89,7 @@ def classifier_head(head: str, in_features: int, num_classes, **kwargs):
         return LinearClassifier(in_features=in_features, num_classes=num_classes)
     elif head == "csra":
         return CSRA(input_dim=in_features, num_classes=num_classes,
-                    num_heads=kwargs["num_heads"], lam=kwargs["lam"])
+                    num_heads=kwargs["num_heads"], lam=kwargs["lam"], linear_input=kwargs["linear_input"])
     elif head == "none":
         return nn.Identity()
     else:

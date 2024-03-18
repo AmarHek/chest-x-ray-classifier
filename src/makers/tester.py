@@ -5,7 +5,6 @@ import pandas as pd
 import torch.cuda
 from torch.utils.data import DataLoader
 import torchvision.transforms as tfs
-from tqdm import tqdm
 
 from components import load_metrics
 from datasets import load_dataset
@@ -121,8 +120,8 @@ class Tester:
         model_paths = []
         for root, dirs, files in os.walk(self.work_dir):
             if self._best_model_exists(root):
-                print(f"Found existing model in {root}.")
                 if self._outputs_exist(root):
+                    print(f"Found existing model in {root}.")
                     if self.overwrite:
                         print(f"Found existing outputs in {root}, but overwrite is enabled, adding to model_paths.")
                         model_paths.append(root)
@@ -257,7 +256,8 @@ class Tester:
         df_class = pd.DataFrame(columns=['Metric'] + self.labels)
         # populate the DataFrame
         for metric, values in class_metrics.items():
-            df_class = df_class._append({'Metric': metric, **dict(zip(self.labels, values))}, ignore_index=True)
+            temp_df = pd.DataFrame({'Metric': metric, **dict(zip(self.labels, values))}, index=[0])
+            df_class = pd.concat([df_class, temp_df], ignore_index=True)
 
         # Concatenate DataFrames along columns
         result_df = pd.merge(left=df_average, right=df_class, on='Metric', how='outer')
@@ -275,7 +275,7 @@ class Tester:
         self.filenames = []
 
         with torch.no_grad():
-            for data in tqdm(self.test_loader, total=len(self.test_loader)):
+            for data in self.test_loader:
                 # extract data
                 images = data['image']
                 labels = data['label']
@@ -317,6 +317,9 @@ class Tester:
             if self.compute_metrics:
                 self.update_metrics()
                 self.write_metrics(model_path)
+                # reset torchmetrics metrics
+                for metric in self.metrics.keys():
+                    self.metrics[metric].reset()
             print("Done.")
 
         print("Testing done.")

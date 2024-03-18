@@ -154,13 +154,13 @@ class CheXpert(Dataset):
 
     def _upsample_images(self, upsample_labels):
         assert isinstance(upsample_labels, list), 'Input should be list!'
-        assert all(col in self.train_labels for col in upsample_labels), \
-            'Discrepancy between upsample_labels and train_labels!'
 
         sampled_df_list = []
         for col in upsample_labels:
-            print('Upsampling %s...' % col)
-            sampled_df_list.append(self.df[self.df[col] == 1])
+            # upsample only the columns that are selected in train_labels
+            if col in self.train_labels:
+                print('Upsampling %s...' % col)
+                sampled_df_list.append(self.df[self.df[col] == 1])
         self.df = pd.concat([self.df] + sampled_df_list, axis=0)
 
     def _shuffle(self, seed):

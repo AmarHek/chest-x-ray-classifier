@@ -4,7 +4,7 @@ trainParams:
   seed: 42
   logger: "tensorboard"
   update_steps: 10
-  n_epochs: 2
+  n_epochs: 200
   save_epoch_freq: 1
   max_keep_ckpts: 3
   batch_size: 32
@@ -90,3 +90,5 @@ augmentParams:
   randomResizedCrop: False
   horizontalFlip: True
   verticalFlip: False
+
+

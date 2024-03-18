@@ -14,6 +14,10 @@ def parse_args():
                         help="Learning rate for the optimizer.", type=float)
     parser.add_argument("--backbone",
                         help="Backbone for the model.", type=str)
+    parser.add_argument("--labels",
+                        help="Labels to train on.", type=str)
+    parser.add_argument("--batch_size",
+                        help="Batch size for the training.", type=int)
     args = parser.parse_args()
     return args
 
@@ -32,9 +36,20 @@ def merge_args(args,
               f"to {trainParams.exp_name}")
     if args.backbone is not None:
         modelParams.backbone = args.backbone
-        trainParams.exp_name = trainParams.exp_name + f"_{args.backbone}"
+        trainParams.exp_name = trainParams.exp_name + f"_{args.backbone.replace('/', '_')}"
         print(f"Set backbone to {args.backbone} and exp_name "
               f"to {trainParams.exp_name}")
+    if args.labels is not None:
+        label_num = len(args.labels.split(","))
+        trainDataParams.train_labels = args.labels.split(",")
+        valDataParams.train_labels = args.labels.split(",")
+        trainParams.exp_name = trainParams.exp_name + f"_{args.labels}"
+        # update the number of classes in the model
+        modelParams.num_classes = label_num
+        print(f"Set labels to {args.labels} and updated num_classes to {label_num}")
+    if args.batch_size is not None:
+        trainParams.batch_size = args.batch_size
+        print(f"Set batch size to {args.batch_size}")
 
 
 if __name__ == "__main__":
@@ -53,8 +68,6 @@ if __name__ == "__main__":
     trainDataParams.load_from_dict(cfg["trainDataParams"])
     valDataParams = datasetParamsClass()
     valDataParams.load_from_dict(cfg["valDataParams"])
-    testDataParams = datasetParamsClass()
-    testDataParams.load_from_dict(cfg["testDataParams"])
     augmentParams = params.AugmentationParams()
     augmentParams.load_from_dict(cfg["augmentParams"])
 
@@ -67,6 +80,6 @@ if __name__ == "__main__":
                       augmentParams)
 
     trainer.print_params()
-    trainer.save_params(addTestParams=True, testDataParams=testDataParams)
+    trainer.save_params()
 
     trainer.train()

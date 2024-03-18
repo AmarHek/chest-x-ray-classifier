@@ -1,12 +1,13 @@
-torch~=2.0.1
-torchvision~=0.15.2
-torchaudio~=2.0.2
+torch
+torchvision
+torchaudio
+transformers
 torchmetrics
 tensorboard
 libauc
 numpy
+natsort
 pyyaml
-tqdm
 opencv-python
 pandas
 Pillow
