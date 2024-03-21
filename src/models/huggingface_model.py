@@ -3,7 +3,7 @@ from transformers import AutoModel
 from torch import nn
 
 from models import classifier_head, classifier_function
-from src.params.model_params import HuggingfaceModelParams
+from params.model_params import HuggingfaceModelParams
 
 
 class HuggingfaceModel(nn.Module):
