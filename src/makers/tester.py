@@ -166,7 +166,11 @@ class Tester:
             raise ValueError(f"No best checkpoint found in {model_path}.")
 
         model_data = torch.load(best_checkpoint)
+        #print model params for testing
+        #print(model_data["modelParams"])
         model = load_model(model_data["modelParams"])
+        print("found model params !!!")
+        
         model.load_state_dict(model_data["model"])
         model.to(self.device)
         model.eval()
@@ -222,7 +226,9 @@ class Tester:
         # save outputs as csv with labels as columns
         file = os.path.join(model_dir, self.output_dir, "outputs.csv")
         predictions_np = self.predictions.cpu().numpy()
-        predictions_df = pd.DataFrame(predictions_np, columns=self.labels)
+        #modify to adjust for only training on validation data
+        #predictions_df = pd.DataFrame(predictions_np, columns=self.labels)
+        predictions_df = pd.DataFrame(predictions_np)
         if self.write_filenames:
             filenames = pd.Series(self.filenames)
             predictions_df.insert(0, "filename", filenames)
@@ -233,7 +239,10 @@ class Tester:
             if metric.endswith('_class'):
                 self.test_scores[metric] = self.metrics[metric](self.predictions, self.ground_truth.int()).cpu().numpy()
             else:
-                self.test_scores[metric] = self.metrics[metric](self.predictions, self.ground_truth.int()).item()
+                try:
+                    self.test_scores[metric] = self.metrics[metric](self.predictions, self.ground_truth.int()).item()
+                except:
+                    print("caught exception in tester.py line 240")
 
     def write_metrics(self, model_dir: str):
         # save metrics as csv

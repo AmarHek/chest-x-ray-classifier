@@ -14,7 +14,7 @@ from params import TrainParams, AugmentationParams
 from models import load_model
 
 
-class Trainer:
+class CLTrainer:
 
     def __init__(self,
                  trainParams: TrainParams,
@@ -122,8 +122,9 @@ class Trainer:
         if self.trainParams.continue_train:
             self.load_model()
 
-    def set_dataloaders(self, batch_size=32, num_workers=2):
-        print("Setting up dataloaders")
+    def set_dataloaders(self, batch_size=32, num_workers=2,starting_size=.1):
+        print("Setting up CL dataloaders")
+        print(self.train_set)
         train_loader = DataLoader(self.train_set, batch_size=batch_size,
                                   num_workers=num_workers, drop_last=True, shuffle=True)
         valid_loader = DataLoader(self.valid_set, batch_size=batch_size,

@@ -1,0 +1,34 @@
+testParams:
+  automatic: True
+  work_dir: "C:/Users/Finn/Desktop/Informatik/4. Semester/Bachelor-Arbeit/Framework new/chest-x-ray-classifier/experiments/Pruned Models/Baseline_2024-03-25_11-17-07_1_best_50_Global_unstructured_l1"
+  device: "cpu"
+  metrics: ["auc", "f1", "prec", "rec", "auc_class", "f1_class", "prec_class"]
+  threshold: 0.5
+  batch_size: 16
+  overwrite: True
+testDataParams:
+  dataset: "chexpert"
+  image_root_path: "C:/Users/Finn/Downloads/archive (6)"
+  csv_path: "C:/Users/Finn/Downloads/archive (6)/CheXpert-v1.0-small/local_train.csv"
+  image_size: [224, 224]
+  image_format: 'jpeg'
+  normalization: 'imagenet'
+  augment: False
+  mode: 'test'
+  shuffle: True
+  lsr_method: "dam"
+  use_upsampling: False
+  scan_orientation: "frontal"
+  scan_projection: "all"
+  train_labels: [ "Atelectasis", "Cardiomegaly", "Consolidation", "Edema", "Pleural Effusion",
+                  "Enlarged Cardiomediastinum", "Lung Opacity", "Lung Lesion", "Pneumonia",
+                  "Pneumothorax", "Pleural Other", "Fracture", "Support Devices" ]
+augmentParams:
+  randomAffine: True
+  degrees: [-15, 15]
+  translate: [0.05, 0.05]
+  scale: [0.95, 1.05]
+  fill: 128
+  randomResizedCrop: False
+  horizontalFlip: True
+  verticalFlip: False
