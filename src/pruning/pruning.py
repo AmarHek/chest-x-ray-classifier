@@ -5,9 +5,26 @@ import torch.nn.functional as F
 
 from models import PretrainedModel
 from models import load_model
-import yaml
 from params import PretrainedModelParams
+import argparse
+import yaml
+import platform
 import os
+# Create an ArgumentParser object
+parser = argparse.ArgumentParser(description='Description of your script.')
+
+# Add arguments
+parser.add_argument('yaml_file', type=str, default="configs/prune_config.yaml", help='Specifies config file which contains pruning paramaters')
+
+
+# Parse the command-line arguments
+args = parser.parse_args()
+yaml_file_path = args.yaml_file
+with open(yaml_file_path, "r") as file:
+    yaml_data = yaml.safe_load(file)
+
+pruneParams = yaml_data['pruneParams']
+
 
 def get_all_modules(module):
     all_modules = []
@@ -33,13 +50,8 @@ def save_pruned_model(model,modelParams, optimizer, current_epoch, validation_me
     print("saved succesfully")
 
 # instantiate given model
-model_path = "C:\\Users\\Finn\\Desktop\\Informatik\\4. Semester\\Bachelor-Arbeit\\Framework new\\chest-x-ray-classifier\\experiments\\Baseline_2024-03-25_11-17-07\\Baseline_2024-03-25_11-17-07_1_best.pth"
+model_path = pruneParams['model_path']
 
-#yaml_file_path = model_path+"\\params.yaml"
-
-# Read YAML file
-#with open(yaml_file_path, 'r') as file:
-#    yaml_data = yaml.safe_load(file)
 
 
 model_params = PretrainedModelParams()
@@ -68,10 +80,10 @@ model = load_model(model_params)
 modules = get_all_modules(model)
 
 #test pruning
-pruning_ratio = .5
-pruning_level = "Global"
-pruning_structured = False
-pruning_random = False
+pruning_ratio = pruneParams['pruning_ratio']
+pruning_level = pruneParams['pruning_level']
+pruning_structured = pruneParams['pruning_structured']
+pruning_random = pruneParams['pruning_random']
 pruning_counter = 0
 
 if pruning_level == "Global":
@@ -114,8 +126,8 @@ pruning_structured_str = "structured" if pruning_structured else "unstructured"
 pruning_random_str = "random" if pruning_random else "l1"
 #print(model.state_dict())
 model_name = f"{model_path[-39:-4]}_{int(pruning_ratio*100)}_{pruning_level}_{pruning_structured_str}_{pruning_random_str}"
-pruned_model_path = f"C:\\Users\\Finn\\Desktop\\Informatik\\4. Semester\\Bachelor-Arbeit\\Framework new\\chest-x-ray-classifier\\experiments\\Pruned Models\\{model_name}\\{model_name}.pth"
+pruned_model_path = f"C:/Users/Finn/Desktop/Informatik/4. Semester/Bachelor-Arbeit/Framework new/chest-x-ray-classifier/experiments/Pruned_Models/{model_name}/{model_name}.pth"
 print(model_params)
 
-os.makedirs(f"C:\\Users\\Finn\\Desktop\\Informatik\\4. Semester\\Bachelor-Arbeit\\Framework new\\chest-x-ray-classifier\\experiments\\Pruned Models\\{model_name}")
+os.makedirs(f"C:/Users/Finn/Desktop/Informatik/4. Semester/Bachelor-Arbeit/Framework new/chest-x-ray-classifier/experiments/Pruned_Models/{model_name}")
 save_pruned_model(model,model_params,optimizer,None,validation_metric,None,None,pruned_model_path)

@@ -1,0 +1,6 @@
+pruneParams:
+  model_path: "C:\\Users\\Finn\\Desktop\\Informatik\\4. Semester\\Bachelor-Arbeit\\Framework new\\chest-x-ray-classifier\\experiments\\Baseline_2024-03-25_11-17-07\\Baseline_2024-03-25_11-17-07_1_best.pth"
+  pruning_ratio: .5
+  pruning_level: Global
+  pruning_structured: False
+  pruning_random: False
