@@ -1,6 +1,6 @@
 import pandas as pd
 import argparse
-
+import re
 # Create an ArgumentParser object
 parser = argparse.ArgumentParser(description='Description of your script.')
 
@@ -19,7 +19,8 @@ args = parser.parse_args()
 def compare_performances(path_normal =  r"C:\Users\Finn\Desktop\Informatik\4. Semester\Bachelor-Arbeit\Framework new\chest-x-ray-classifier\experiments\Baseline_2024-03-25_11-17-07",
                         path_pruned = r"C:\Users\Finn\Desktop\Informatik\4. Semester\Bachelor-Arbeit\Framework new\chest-x-ray-classifier\experiments\Pruned Models\Baseline_2024-03-25_11-17-07_1_best_50_Global_unstructured_l1",
                         path_ground_truth = r"C:\Users\Finn\Desktop\Informatik\4. Semester\Bachelor-Arbeit\Framework new\chest-x-ray-classifier\configs\local_train.csv",
-                        export_result = r"C:\Users\Finn\Desktop\Informatik\4. Semester\Bachelor-Arbeit\Framework new\chest-x-ray-classifier\test\comp_test_script.csv"):
+                        export_result = r"C:\Users\Finn\Desktop\Informatik\4. Semester\Bachelor-Arbeit\Framework new\chest-x-ray-classifier\configs\local_train_difficulties.csv",
+                        pruning_method = None):
     df1 = pd.read_csv(f"{path_normal}\\chexpert\\outputs.csv")
     df2 = pd.read_csv(f"{path_pruned}\\chexpert\\outputs.csv")
 
@@ -47,10 +48,20 @@ def compare_performances(path_normal =  r"C:\Users\Finn\Desktop\Informatik\4. Se
                 result[f"perf_{df}_total"] = result[[f"perf_{df}_{k}" for k in range(13)]].sum(axis=1)
 
     #get pruning impact
-    result['pruning_impact'] = result[f"perf_x_total"] - result[f"perf_y_total"]
+    result[f'PI_{pruning_method}'] = result[f"perf_x_total"] - result[f"perf_y_total"]
     print('succesfully inferred pruning impact')
     
-    #export
-    result.to_csv(export_result)
+    #add pruning impact to difficulties file
 
-compare_performances()
+    ddf = pd.read_csv(export_result)
+    exp_df = pd.merge(ddf,result[['filename',f'PI_{pruning_method}']],left_on = 'Path',right_on='filename',how="outer")
+    #
+    cols_to_drop = []
+    for c in exp_df.columns: 
+        if "filename" in c or "Unnamed" in c:
+            cols_to_drop.append(c)
+    exp_df = exp_df.drop(columns=cols_to_drop)
+    exp_df.to_csv(export_result)
+
+
+compare_performances(pruning_method="50_Global_unstructured_l1")
