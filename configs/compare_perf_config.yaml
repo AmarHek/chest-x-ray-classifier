@@ -1,0 +1,6 @@
+compParams:
+  path_normal: "C:\\Users\\Finn\\Desktop\\Informatik\\4. Semester\\Bachelor-Arbeit\\Framework new\\chest-x-ray-classifier\\experiments\\Baseline_2024-03-25_11-17-07"
+  path_pruned: "C:\\Users\\Finn\\Desktop\\Informatik\\4. Semester\\Bachelor-Arbeit\\Framework new\\chest-x-ray-classifier\\experiments\\Pruned Models\\Baseline_2024-03-25_11-17-07_1_best_50_Global_unstructured_l1"
+  path_ground_truth: "C:\\Users\\Finn\\Desktop\\Informatik\\4. Semester\\Bachelor-Arbeit\\Framework new\\chest-x-ray-classifier\\configs\\local_train.csv"
+  export_result: "C:\\Users\\Finn\\Desktop\\Informatik\\4. Semester\\Bachelor-Arbeit\\Framework new\\chest-x-ray-classifier\\configs\\local_train_difficulties.csv"
+  pruning_method: "50_Global_unstructured_l1"

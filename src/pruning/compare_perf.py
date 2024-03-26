@@ -1,28 +1,38 @@
 import pandas as pd
 import argparse
 import re
+import platform
+import yaml
 # Create an ArgumentParser object
 parser = argparse.ArgumentParser(description='Description of your script.')
 
 # Add arguments
-#parser.add_argument('arg1', type=int, help='Description of argument 1')
-#parser.add_argument('--arg2', type=float, default=0.0, help='Description of argument 2')
+parser.add_argument('yaml_file', type=str, default="configs/compare_perf_config.yaml", help='Specifies config file which contains files to be compared')
+
 
 # Parse the command-line arguments
 args = parser.parse_args()
+yaml_file_path = args.yaml_file
+with open(yaml_file_path, "r") as file:
+    yaml_data = yaml.safe_load(file)
 
+paths = yaml_data['compParams']
 # Access the arguments
 #print("Argument 1:", args.arg1)
 #print("Argument 2:", args.arg2)
 
 
-def compare_performances(path_normal =  r"C:\Users\Finn\Desktop\Informatik\4. Semester\Bachelor-Arbeit\Framework new\chest-x-ray-classifier\experiments\Baseline_2024-03-25_11-17-07",
-                        path_pruned = r"C:\Users\Finn\Desktop\Informatik\4. Semester\Bachelor-Arbeit\Framework new\chest-x-ray-classifier\experiments\Pruned Models\Baseline_2024-03-25_11-17-07_1_best_50_Global_unstructured_l1",
-                        path_ground_truth = r"C:\Users\Finn\Desktop\Informatik\4. Semester\Bachelor-Arbeit\Framework new\chest-x-ray-classifier\configs\local_train.csv",
-                        export_result = r"C:\Users\Finn\Desktop\Informatik\4. Semester\Bachelor-Arbeit\Framework new\chest-x-ray-classifier\configs\local_train_difficulties.csv",
-                        pruning_method = None):
-    df1 = pd.read_csv(f"{path_normal}\\chexpert\\outputs.csv")
-    df2 = pd.read_csv(f"{path_pruned}\\chexpert\\outputs.csv")
+def compare_performances(path_normal,
+                        path_pruned,
+                        path_ground_truth,
+                        export_result, 
+                        pruning_method):
+    if platform.system() == 'Windows':
+        df1 = pd.read_csv(f"{path_normal}\\chexpert\\outputs.csv")
+        df2 = pd.read_csv(f"{path_pruned}\\chexpert\\outputs.csv")
+    else:
+        df1 = pd.read_csv(f"{path_normal}/chexpert/outputs.csv")
+        df2 = pd.read_csv(f"{path_pruned}/chexpert/outputs.csv")
 
     tdf = pd.read_csv(path_ground_truth)
     # Concatenate based on 'filename'
@@ -63,5 +73,10 @@ def compare_performances(path_normal =  r"C:\Users\Finn\Desktop\Informatik\4. Se
     exp_df = exp_df.drop(columns=cols_to_drop)
     exp_df.to_csv(export_result)
 
+path_normal = paths['path_normal']
+path_pruned = paths['path_pruned']
+path_ground_truth = paths['path_ground_truth']
+export_result = paths['export_result']
+pruning_method = paths['pruning_method']
 
-compare_performances(pruning_method="50_Global_unstructured_l1")
+compare_performances(path_normal, path_pruned, path_ground_truth,export_result,pruning_method)
