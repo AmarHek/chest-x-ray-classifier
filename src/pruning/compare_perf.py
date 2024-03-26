@@ -1,7 +1,56 @@
 import pandas as pd
+import argparse
 
-def compare_performances(path_normal, path_pruned):
+# Create an ArgumentParser object
+parser = argparse.ArgumentParser(description='Description of your script.')
+
+# Add arguments
+#parser.add_argument('arg1', type=int, help='Description of argument 1')
+#parser.add_argument('--arg2', type=float, default=0.0, help='Description of argument 2')
+
+# Parse the command-line arguments
+args = parser.parse_args()
+
+# Access the arguments
+#print("Argument 1:", args.arg1)
+#print("Argument 2:", args.arg2)
+
+
+def compare_performances(path_normal =  r"C:\Users\Finn\Desktop\Informatik\4. Semester\Bachelor-Arbeit\Framework new\chest-x-ray-classifier\experiments\Baseline_2024-03-25_11-17-07",
+                        path_pruned = r"C:\Users\Finn\Desktop\Informatik\4. Semester\Bachelor-Arbeit\Framework new\chest-x-ray-classifier\experiments\Pruned Models\Baseline_2024-03-25_11-17-07_1_best_50_Global_unstructured_l1",
+                        path_ground_truth = r"C:\Users\Finn\Desktop\Informatik\4. Semester\Bachelor-Arbeit\Framework new\chest-x-ray-classifier\configs\local_train.csv",
+                        export_result = r"C:\Users\Finn\Desktop\Informatik\4. Semester\Bachelor-Arbeit\Framework new\chest-x-ray-classifier\test\comp_test_script.csv"):
     df1 = pd.read_csv(f"{path_normal}\\chexpert\\outputs.csv")
     df2 = pd.read_csv(f"{path_pruned}\\chexpert\\outputs.csv")
+
+    tdf = pd.read_csv(path_ground_truth)
     # Concatenate based on 'filename'
     result = pd.merge(df1, df2, on='filename', how='outer')
+
+    columns_to_transform = result.columns.drop("filename").tolist()
+    #convert output to boolean values
+    result.loc[:, columns_to_transform] = result.loc[:, columns_to_transform].applymap(lambda x: 1 if x >= 0.5 else 0)
+    #shorten filenames to match format of tdf
+    result.filename = result.filename.map(lambda x: x[36:])
+
+    #merge result and truth
+    result = pd.merge(result,tdf, left_on='filename',right_on='Path',how='outer')
+
+    #get performance for both dfs for each illness
+    illness = tdf.columns.tolist()[7:]
+    for i in range(13):
+        for df in ['x','y']:
+            result[f"perf_{df}_{i}"] = (result[f'{i}_{df}'] == result[illness[i]]).astype(int)
+
+            #get overall performance
+            if i == 12:
+                result[f"perf_{df}_total"] = result[[f"perf_{df}_{k}" for k in range(13)]].sum(axis=1)
+
+    #get pruning impact
+    result['pruning_impact'] = result[f"perf_x_total"] - result[f"perf_y_total"]
+    print('succesfully inferred pruning impact')
+    
+    #export
+    result.to_csv(export_result)
+
+compare_performances()

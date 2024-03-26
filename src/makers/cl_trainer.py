@@ -12,7 +12,7 @@ from components import get_optimizer, get_loss, get_scheduler, load_metrics
 from datasets import load_dataset
 from params import TrainParams, AugmentationParams
 from models import load_model
-
+import pandas as pd
 
 class CLTrainer:
 
@@ -65,7 +65,7 @@ class CLTrainer:
         # Data Loading
         self.train_set = load_dataset(dataTrainParams, augmentParams)
         self.valid_set = load_dataset(dataValParams, augmentParams)
-        self.train_loader, self.val_loader = self.set_dataloaders(trainParams.batch_size, trainParams.num_workers)
+        self.train_loader, self.val_loader = self.set_dataloaders(trainParams.batch_size, trainParams.num_workers,1,self.trainParams.n_epochs)
 
         # losses, metrics, optimizer, etc.
         self.learning_rate = trainParams.learning_rate
@@ -122,13 +122,41 @@ class CLTrainer:
         if self.trainParams.continue_train:
             self.load_model()
 
-    def set_dataloaders(self, batch_size=32, num_workers=2,starting_size=.1):
+    def set_dataloaders(self, batch_size=32, num_workers=2,current_epoch=1,n_epochs=3,cl_learning=True):
         print("Setting up CL dataloaders")
-        print(self.train_set)
+        #set training_sets
+        cl_strategy = "linear"
+        if cl_strategy == "linear" and cl_learning:
+            max_n = len(self.train_set._images_list)
+            n = int(current_epoch/n_epochs*max_n)
+            print("n set at ",n)
+        #get difficulties for training set
+            try:
+                #temporary hard coded, should be taken from trainParams
+                #diff = pd.read_csv(r"C:\Users\Finn\Desktop\Informatik\4. Semester\Bachelor-Arbeit\Framework new\chest-x-ray-classifier\configs\local_train_difficulties.csv")
+                print(self.dataTrainParams)
+                print(self.dataTrainParams.csv_path,self.dataTrainParams.image_root_path)
+                df = self.dataTrainParams.csv_path
+                #image_root_path = "C:/Users/Finn/Downloads/archive (6)"
+                image_root_path = self.dataTrainParams.image_root_path
+                diff = pd.read(f"{df[:-4]}_difficulties.csv")
+                anticurriculum = False
+                if anticurriculum:
+                    diff = diff.sort_values(by="difficulty",ascending=True)
+                else:
+                    diff = diff.sort_values(by="difficulty",ascending=False)
+                
+                self.train_set._images_list = [os.path.join(image_root_path, path) for path in diff['Path'].head(n).tolist()]
+                self.train_set.num_images = len(self.train_set._images_list)
+            except:
+                print(f"No difficulties available for ..., not applying curriculum")
+                n = len(self.train_set._images_list)
+        
         train_loader = DataLoader(self.train_set, batch_size=batch_size,
                                   num_workers=num_workers, drop_last=True, shuffle=True)
         valid_loader = DataLoader(self.valid_set, batch_size=batch_size,
                                   num_workers=num_workers, drop_last=False, shuffle=False)
+        print("Trainloader has length", len(train_loader))
 
         return train_loader, valid_loader
 
@@ -213,7 +241,11 @@ class CLTrainer:
         for metric in self.train_metrics.keys():
             self.train_metrics[metric].reset()
 
+        #reset self.train_loader here for CL purposes
+        self.train_loader = self.set_dataloaders(self.trainParams.batch_size, self.trainParams.num_workers,self.current_epoch+1,self.trainParams.n_epochs)[0]
+
         for batch, data in enumerate(self.train_loader):
+            
             # extract data
             images = data["image"]
             labels = data["label"]
