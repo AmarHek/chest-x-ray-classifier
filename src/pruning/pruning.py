@@ -47,7 +47,7 @@ def save_pruned_model(model,modelParams, optimizer, current_epoch, validation_me
                 #"score": current_score,
                 #"best_score": best_score},
                 },save_path)
-    print("saved succesfully")
+    print(f"saved succesfully to {save_path}")
 
 # instantiate given model
 model_path = pruneParams['model_path']
@@ -125,9 +125,13 @@ if pruning_level == "Local":
 pruning_structured_str = "structured" if pruning_structured else "unstructured"
 pruning_random_str = "random" if pruning_random else "l1"
 #print(model.state_dict())
+base_path = pruneParams["base_path"]
 model_name = f"{model_path[-39:-4]}_{int(pruning_ratio*100)}_{pruning_level}_{pruning_structured_str}_{pruning_random_str}"
-pruned_model_path = f"C:/Users/Finn/Desktop/Informatik/4. Semester/Bachelor-Arbeit/Framework new/chest-x-ray-classifier/experiments/Pruned_Models/{model_name}/{model_name}.pth"
+pruned_model_path = f"{base_path}/Pruned_Models/{model_name}/{model_name}.pth"
 print(model_params)
 
-os.makedirs(f"C:/Users/Finn/Desktop/Informatik/4. Semester/Bachelor-Arbeit/Framework new/chest-x-ray-classifier/experiments/Pruned_Models/{model_name}")
+try:
+    os.makedirs(f"{base_path}/Pruned_Models/{model_name}")
+except:
+    print("directory already exists, overwriting previously saved model")
 save_pruned_model(model,model_params,optimizer,None,validation_metric,None,None,pruned_model_path)
