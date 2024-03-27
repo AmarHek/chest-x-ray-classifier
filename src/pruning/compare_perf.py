@@ -37,25 +37,25 @@ def compare_performances(path_normal,
     tdf = pd.read_csv(path_ground_truth)
     # Concatenate based on 'filename'
     result = pd.merge(df1, df2, on='filename', how='outer')
-
     columns_to_transform = result.columns.drop("filename").tolist()
     #convert output to boolean values
-    result.loc[:, columns_to_transform] = result.loc[:, columns_to_transform].applymap(lambda x: 1 if x >= 0.5 else 0)
+    result.loc[:, columns_to_transform] = result.loc[:, columns_to_transform].map(lambda x: 1 if x >= 0.5 else 0)
     #shorten filenames to match format of tdf
-    result.filename = result.filename.map(lambda x: x[36:])
+    result.filename = result.filename.map(lambda x: x[x.find("CheXpert-v1.0-small"):])
 
     #merge result and truth
     result = pd.merge(result,tdf, left_on='filename',right_on='Path',how='outer')
 
     #get performance for both dfs for each illness
-    illness = tdf.columns.tolist()[7:]
-    for i in range(12):
+    #illness = tdf.columns.tolist()[6:]
+    illness = ['Enlarged Cardiomediastinum', 'Cardiomegaly', 'Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation', 'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion', 'Pleural Other', 'Fracture', 'Support Devices']
+    for i in range(13):
         for df in ['x','y']:
             result[f"perf_{df}_{i}"] = (result[f'{i}_{df}'] == result[illness[i]]).astype(int)
 
             #get overall performance
-            if i == 11:
-                result[f"perf_{df}_total"] = result[[f"perf_{df}_{k}" for k in range(12)]].sum(axis=1)
+            if i == 12:
+                result[f"perf_{df}_total"] = result[[f"perf_{df}_{k}" for k in range(13)]].sum(axis=1)
 
     #get pruning impact
     result[f'PI_{pruning_method}'] = result[f"perf_x_total"] - result[f"perf_y_total"]
