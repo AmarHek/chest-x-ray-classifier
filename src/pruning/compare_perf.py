@@ -54,7 +54,7 @@ def compare_performances(path_normal,
             result[f"perf_{df}_{i}"] = (result[f'{i}_{df}'] == result[illness[i]]).astype(int)
 
             #get overall performance
-            if i == 12:
+            if i == 11:
                 result[f"perf_{df}_total"] = result[[f"perf_{df}_{k}" for k in range(13)]].sum(axis=1)
 
     #get pruning impact
