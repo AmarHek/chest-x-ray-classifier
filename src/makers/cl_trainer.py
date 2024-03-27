@@ -122,7 +122,7 @@ class CLTrainer:
         if self.trainParams.continue_train:
             self.load_model()
 
-    def set_dataloaders(self, batch_size=32, num_workers=2,current_epoch=1,n_epochs=3,cl_learning=True):
+    def set_dataloaders(self, batch_size=32, num_workers=2,current_epoch=1,n_epochs=200,cl_learning=True):
         print("Setting up CL dataloaders")
         #set training_sets
         cl_strategy = "linear"
