@@ -127,7 +127,8 @@ class CLTrainer:
         #set training_sets
         cl_strategy = "linear"
         if cl_strategy == "linear" and cl_learning:
-            max_n = len(self.train_set._images_list)
+            #temporarily hard set
+            max_n = 191027
             n = int(current_epoch/n_epochs*max_n)
             print("max_n",max_n,"n set at ",n)
         #get difficulties for training set
