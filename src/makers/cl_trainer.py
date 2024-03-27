@@ -148,7 +148,7 @@ class CLTrainer:
         
         self.train_set._images_list = [os.path.join(image_root_path, path) for path in diff['Path'].head(n).tolist()]
         self.train_set.num_images = len(self.train_set._images_list)
-            
+        print(self.train_set._images_list[0:4]) 
         #print(f"No difficulties available for ..., not applying curriculum")
         #n = len(self.train_set._images_list)
         
