@@ -49,7 +49,7 @@ def compare_performances(path_normal,
 
     #get performance for both dfs for each illness
     illness = tdf.columns.tolist()[7:]
-    for i in range(13):
+    for i in range(12):
         for df in ['x','y']:
             result[f"perf_{df}_{i}"] = (result[f'{i}_{df}'] == result[illness[i]]).astype(int)
 
