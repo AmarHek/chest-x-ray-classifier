@@ -55,7 +55,7 @@ def compare_performances(path_normal,
 
             #get overall performance
             if i == 11:
-                result[f"perf_{df}_total"] = result[[f"perf_{df}_{k}" for k in range(13)]].sum(axis=1)
+                result[f"perf_{df}_total"] = result[[f"perf_{df}_{k}" for k in range(12)]].sum(axis=1)
 
     #get pruning impact
     result[f'PI_{pruning_method}'] = result[f"perf_x_total"] - result[f"perf_y_total"]
