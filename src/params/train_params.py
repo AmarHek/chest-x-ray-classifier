@@ -56,3 +56,8 @@ class TrainParams(BaseParams):
 
     # specific loss parameters
     k: int = 1  # for comp. auc loss -  k is the number of inner updates for optimizing ce loss
+
+    #CL paramater
+    difficulty_file: str = "./configs/train_with_difficulties.csv"
+    difficulty_measure: str = "PI_70_Global_unstructured_l1"
+    anticurriculum: bool = False

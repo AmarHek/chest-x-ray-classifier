@@ -131,26 +131,26 @@ class CLTrainer:
             n = int(current_epoch/n_epochs*max_n)
             print("n set at ",n)
         #get difficulties for training set
-            try:
-                #temporary hard coded, should be taken from trainParams
-                #diff = pd.read_csv(r"C:\Users\Finn\Desktop\Informatik\4. Semester\Bachelor-Arbeit\Framework new\chest-x-ray-classifier\configs\local_train_difficulties.csv")
-                print(self.dataTrainParams)
-                print(self.dataTrainParams.csv_path,self.dataTrainParams.image_root_path)
-                df = self.dataTrainParams.csv_path
-                #image_root_path = "C:/Users/Finn/Downloads/archive (6)"
-                image_root_path = self.dataTrainParams.image_root_path
-                diff = pd.read(f"{df[:-4]}_difficulties.csv")
-                anticurriculum = False
-                if anticurriculum:
-                    diff = diff.sort_values(by="difficulty",ascending=True)
-                else:
-                    diff = diff.sort_values(by="difficulty",ascending=False)
-                
-                self.train_set._images_list = [os.path.join(image_root_path, path) for path in diff['Path'].head(n).tolist()]
-                self.train_set.num_images = len(self.train_set._images_list)
-            except:
-                print(f"No difficulties available for ..., not applying curriculum")
-                n = len(self.train_set._images_list)
+            
+               #
+        df = self.dataTrainParams.csv_path
+        #image_root_path = "C:/Users/Finn/Downloads/archive (6)"
+        image_root_path = self.dataTrainParams.image_root_path
+        #hard coded difficulties file
+        diff_file = self.trainParams.difficulty_file
+        diff = pd.read_csv(diff_file)
+        anticurriculum = self.trainParams.anticurriculum
+        difficulty_measure = self.trainParams.difficulty_measure  
+        if anticurriculum:
+            diff = diff.sort_values(by=difficulty_measure,ascending=True)
+        else:
+            diff = diff.sort_values(by=difficulty_measure,ascending=False)
+        
+        self.train_set._images_list = [os.path.join(image_root_path, path) for path in diff['Path'].head(n).tolist()]
+        self.train_set.num_images = len(self.train_set._images_list)
+            
+        #print(f"No difficulties available for ..., not applying curriculum")
+        #n = len(self.train_set._images_list)
         
         train_loader = DataLoader(self.train_set, batch_size=batch_size,
                                   num_workers=num_workers, drop_last=True, shuffle=True)
