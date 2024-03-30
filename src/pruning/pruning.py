@@ -102,10 +102,10 @@ if pruning_level == "Local":
     for i in range(len(modules)):
         try:
             if pruning_structured and pruning_random:
-                prune.random_structured(modules[i], name="weight", amount=pruning_ratio,dim=0)
+                prune.random_structured(modules[i], name="weight",n=2, amount=pruning_ratio,dim=0)
             
             elif pruning_structured and not pruning_random:
-                prune.ln_structured(modules[i], name="weight", amount=pruning_ratio,dim=0)
+                prune.ln_structured(modules[i], name="weight",n=2, amount=pruning_ratio,dim=0)
             
             elif not pruning_structured and pruning_random:
                 prune.random_unstructured(modules[i], name="weight", amount=pruning_ratio)
