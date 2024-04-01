@@ -38,6 +38,13 @@ def get_all_modules(module):
 
     return all_modules
 
+def test_structured_prunable(module):
+    try:
+        prune.ln_structured(module, name="weight",n=2, amount=1,dim=1)
+        return True
+    except:
+        return False
+
 def save_pruned_model(model,modelParams, optimizer, current_epoch, validation_metric,current_score, best_score,save_path):
     torch.save({"model": model.state_dict(),
                 "modelParams": modelParams,
@@ -99,14 +106,18 @@ if pruning_level == "Global":
 
         
 if pruning_level == "Local":
+    #remove modules that are not prunable in structured pruning
+    if pruning_structured:
+        #modules = [m for m in modules if isinstance(m,nn.Conv2d)]
+        modules = [m for m in modules if test_structured_prunable(m)]
     for i in range(len(modules)):
         try:
             if pruning_structured and pruning_random:
-                prune.random_structured(modules[i], name="weight",n=2, amount=pruning_ratio,dim=0)
+                prune.random_structured(modules[i], name="weight", amount=pruning_ratio,dim=0)
             
             elif pruning_structured and not pruning_random:
                 prune.ln_structured(modules[i], name="weight",n=2, amount=pruning_ratio,dim=0)
-            
+                print("applied succesfull to ",modules[i])
             elif not pruning_structured and pruning_random:
                 prune.random_unstructured(modules[i], name="weight", amount=pruning_ratio)
             elif not pruning_structured and not pruning_random:
