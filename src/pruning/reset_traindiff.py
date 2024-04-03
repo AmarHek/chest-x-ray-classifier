@@ -5,7 +5,7 @@ if platform.system() == 'Windows':
     filepath = r"C:\Users\Finn\Desktop\Informatik\4. Semester\Bachelor-Arbeit\Framework new\chest-x-ray-classifier\configs\local_train_difficulties.csv"
     base_path = "C:/Users/Finn/Desktop/Informatik/4. Semester/Bachelor-Arbeit/Framework new/chest-x-ray-classifier/configs/old_pi_files/"
 else:
-    filepath = "./local_train_difficulties.csv"
+    filepath = "./configs/train_with_difficulties.csv"
     base_path = "./configs/old_pi_files/"
 df = pd.read_csv(filepath)
 
