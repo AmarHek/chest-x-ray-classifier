@@ -61,3 +61,6 @@ class TrainParams(BaseParams):
     difficulty_file: str = "./configs/train_with_difficulties.csv"
     difficulty_measure: str = "PI_70_Global_unstructured_l1"
     anticurriculum: bool = False
+    cl_strategy: str = "linear"
+    cl_epoch: int = 1
+    cl_batch_proportion:float = .1

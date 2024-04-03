@@ -105,12 +105,15 @@ class CLTrainer:
         if self.trainParams.validation_metric_mode == "max":
             self.best_score = 0
             self.current_score = 0
+            self.last_score = 0
         elif self.trainParams.validation_metric_mode == "min":
             self.best_score = np.infty
             self.current_score = np.infty
+            self.last_score = np.infty
         else:
             raise ValueError("Invalid validation metric mode!")
-
+        
+        
         # scheduling
         self.current_epoch = 0
         self.lr_scheduler = get_scheduler(self.trainParams.lr_policy,
@@ -125,15 +128,21 @@ class CLTrainer:
     def set_dataloaders(self, batch_size=32, num_workers=2,current_epoch=1,n_epochs=200,cl_learning=True):
         print("Setting up CL dataloaders")
         #set training_sets
-        cl_strategy = "linear"
+        cl_strategy = self.trainParams.cl_strategy
+        #temporarily hard set
+        max_n = len(pd.read_csv(self.dataTrainParams.csv_path))
+        n_epochs = self.trainParams.n_epochs
         if cl_strategy == "linear" and cl_learning:
-            #temporarily hard set
-            max_n = 191027
+            
+            
             n = int(current_epoch/n_epochs*max_n)
             print("max_n",max_n,"n set at ",n)
         #get difficulties for training set
             
-               #
+        if cl_strategy == "baby_step" and cl_learning:
+            
+            n = int(self.trainParams.cl_epoch*self.trainParams.cl_batch_proportion*max_n)
+            print("max_n",max_n,"n set at ",n)
         df = self.dataTrainParams.csv_path
         #image_root_path = "C:/Users/Finn/Downloads/archive (6)"
         image_root_path = self.dataTrainParams.image_root_path
@@ -152,7 +161,7 @@ class CLTrainer:
 
         #print(f"No difficulties available for ..., not applying curriculum")
         #n = len(self.train_set._images_list)
-        
+        print(f"currently {len(self.train_set._images_list)} images in batch")
         train_loader = DataLoader(self.train_set, batch_size=batch_size,
                                   num_workers=num_workers, drop_last=True, shuffle=True)
         valid_loader = DataLoader(self.valid_set, batch_size=batch_size,
@@ -179,6 +188,15 @@ class CLTrainer:
         else:
             raise ValueError("Invalid validation metric mode!")
 
+        return condition
+    
+    def new_cl_batch(self) -> bool:
+        if self.trainParams.validation_metric_mode == "max":
+            condition = (self.last_score >= self.current_score)
+        elif self.trainParams.validation_metric_mode == "min":
+            condition = (self.last_score <= self.current_score)
+        else:
+            raise ValueError("Invalid validation metric mode!") 
         return condition
 
     def log(self, mode: str = "train", batch: int = None):
@@ -373,12 +391,22 @@ class CLTrainer:
                 print(f'Model improved at epoch {self.current_epoch}, saving model.')
                 self.best_score = self.current_score
                 self.save_model(save_best=True)
+            #check for convergence within batch
+            if self.trainParams.cl_strategy =="baby_step" and self.new_cl_batch():
+                
+                print(f'converged for batch {self.trainParams.cl_epoch}, adding to batch')
+                self.trainParams.cl_epoch+=1
+                self.last_score = 0 if self.trainParams.validation_metric_mode == "max" else np.infty
+            else:
+                print(f"keeping cl epoch at {self.trainParams.cl_epoch}")
+                self.last_score = self.current_score
             # early stopping
             if self.trainParams.early_stopping:
                 if self.check_early_stopping(improved):
                     print(f"Early stopping at {epoch}")
                     break
 
+                
     def print_params(self):
         if self.trainParams.continue_train:
             print(f"Continuing training from epoch {self.current_epoch}...")
