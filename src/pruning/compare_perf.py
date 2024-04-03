@@ -104,4 +104,4 @@ pruning_method = paths['pruning_method']
 
 for i,p in enumerate(path_pruned):
     print(f"{i+1}/{len(path_pruned)}: {p}")
-    compare_performances(path_normal,p , path_ground_truth,export_result,pruning_method)
+    compare_performances(path_normal,p , path_ground_truth,export_result,pruning_method[i])
