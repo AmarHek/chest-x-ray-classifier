@@ -28,12 +28,12 @@ def get_change_in_prob_row(l1,l2):
     return sum
 def get_change_in_prob_overall(df,no,dfs):
     l1cols = [f"{i}_{dfs[0]}" for i in range(no)]
-    l2cols = [f"{i}_{dfs[0]}" for i in range(no)]
+    l2cols = [f"{i}_{dfs[1]}" for i in range(no)]
     res = []
     for index, row in df.iterrows():
         l1 = df.loc[index,:][l1cols].tolist()
         l2 = df.loc[index,:][l2cols].tolist()
-        
+        #print(l1,l2)
         res.append(get_change_in_prob_row(l1,l2))
     return res
 def compare_performances(path_normal,
@@ -102,4 +102,6 @@ path_ground_truth = paths['path_ground_truth']
 export_result = paths['export_result']
 pruning_method = paths['pruning_method']
 
-compare_performances(path_normal, path_pruned, path_ground_truth,export_result,pruning_method)
+for i,p in enumerate(path_pruned):
+    print(f"{i+1}/{len(path_pruned)}: {p}")
+    compare_performances(path_normal,p , path_ground_truth,export_result,pruning_method)
