@@ -142,6 +142,7 @@ class CLTrainer:
         if cl_strategy == "baby_step" and cl_learning:
             
             n = int(self.trainParams.cl_epoch*self.trainParams.cl_batch_proportion*max_n)
+            n = min(n,max_n)
             print("max_n",max_n,"n set at ",n)
         df = self.dataTrainParams.csv_path
         #image_root_path = "C:/Users/Finn/Downloads/archive (6)"
