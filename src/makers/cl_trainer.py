@@ -157,9 +157,11 @@ class CLTrainer:
             anticurriculum = self.trainParams.anticurriculum
             difficulty_measure = self.trainParams.difficulty_measure  
             if anticurriculum:
-                diff = diff.sort_values(by=difficulty_measure,ascending=True)
+                pass
+                #diff = diff.sort_values(by=difficulty_measure,ascending=True)
             else:
-                diff = diff.sort_values(by=difficulty_measure,ascending=False)
+                pass
+                #diff = diff.sort_values(by=difficulty_measure,ascending=False)
         
             self.train_set._images_list = [os.path.join(image_root_path, path) for path in diff['Path'].head(n).tolist()]
 
