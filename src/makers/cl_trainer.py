@@ -127,9 +127,11 @@ class CLTrainer:
 
     def set_dataloaders(self, batch_size=32, num_workers=2,current_epoch=1,n_epochs=200,cl_learning=True):
         print("Setting up CL dataloaders")
+        temp_img_set = set(self.train_set._images_list)
         #set training_sets
         cl_strategy = self.trainParams.cl_strategy
         #temporarily hard set
+        
         max_n = min(191027,len(pd.read_csv(self.dataTrainParams.csv_path)))
         n_epochs = self.trainParams.n_epochs
         if cl_strategy == "linear" and cl_learning:
@@ -148,6 +150,7 @@ class CLTrainer:
             df = self.dataTrainParams.csv_path
             #image_root_path = "C:/Users/Finn/Downloads/archive (6)"
             image_root_path = self.dataTrainParams.image_root_path
+            print(f"image root path: {image_root_path}")
             #hard coded difficulties file
             diff_file = self.trainParams.difficulty_file
             diff = pd.read_csv(diff_file)
@@ -170,7 +173,7 @@ class CLTrainer:
         valid_loader = DataLoader(self.valid_set, batch_size=batch_size,
                                   num_workers=num_workers, drop_last=False, shuffle=False)
         print("Trainloader has length", len(train_loader))
-
+        print("images have remained the same: ",temp_img_set==set(self.train_set._images_list))
         return train_loader, valid_loader
 
     def check_early_stopping(self, improved: bool) -> bool:
