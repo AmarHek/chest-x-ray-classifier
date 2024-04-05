@@ -130,7 +130,7 @@ class CLTrainer:
         #set training_sets
         cl_strategy = self.trainParams.cl_strategy
         #temporarily hard set
-        max_n = len(pd.read_csv(self.dataTrainParams.csv_path))
+        max_n = min(191027,len(pd.read_csv(self.dataTrainParams.csv_path)))
         n_epochs = self.trainParams.n_epochs
         if cl_strategy == "linear" and cl_learning:
             
