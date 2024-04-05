@@ -144,21 +144,23 @@ class CLTrainer:
             n = int(self.trainParams.cl_epoch*self.trainParams.cl_batch_proportion*max_n)
             n = min(n,max_n)
             print("max_n",max_n,"n set at ",n)
-        df = self.dataTrainParams.csv_path
-        #image_root_path = "C:/Users/Finn/Downloads/archive (6)"
-        image_root_path = self.dataTrainParams.image_root_path
-        #hard coded difficulties file
-        diff_file = self.trainParams.difficulty_file
-        diff = pd.read_csv(diff_file)
-        anticurriculum = self.trainParams.anticurriculum
-        difficulty_measure = self.trainParams.difficulty_measure  
-        if anticurriculum:
-            diff = diff.sort_values(by=difficulty_measure,ascending=True)
-        else:
-            diff = diff.sort_values(by=difficulty_measure,ascending=False)
+        if cl_strategy != "none":
+            df = self.dataTrainParams.csv_path
+            #image_root_path = "C:/Users/Finn/Downloads/archive (6)"
+            image_root_path = self.dataTrainParams.image_root_path
+            #hard coded difficulties file
+            diff_file = self.trainParams.difficulty_file
+            diff = pd.read_csv(diff_file)
+            anticurriculum = self.trainParams.anticurriculum
+            difficulty_measure = self.trainParams.difficulty_measure  
+            if anticurriculum:
+                diff = diff.sort_values(by=difficulty_measure,ascending=True)
+            else:
+                diff = diff.sort_values(by=difficulty_measure,ascending=False)
         
-        self.train_set._images_list = [os.path.join(image_root_path, path) for path in diff['Path'].head(n).tolist()]
-        self.train_set.num_images = len(self.train_set._images_list)
+            self.train_set._images_list = [os.path.join(image_root_path, path) for path in diff['Path'].head(n).tolist()]
+
+            self.train_set.num_images = len(self.train_set._images_list)
 
         #print(f"No difficulties available for ..., not applying curriculum")
         #n = len(self.train_set._images_list)
@@ -366,6 +368,8 @@ class CLTrainer:
 
             # Training
             print(f'Training at epoch {self.current_epoch}/{self.trainParams.n_epochs}...')
+            #control statement for CL
+            print("self.train_loader has size ", len(self.train_loader))
             self.train_epoch()
 
             # Validation
