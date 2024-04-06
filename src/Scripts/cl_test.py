@@ -40,6 +40,6 @@ if __name__ == "__main__":
 
     merge_args(args, testParams, testDataParams, augmentParams)
 
-    tester = Tester(testParams, testDataParams, augmentParams)
+    tester = CLTester(testParams, testDataParams, augmentParams)
 
     tester.test()
