@@ -1,7 +1,7 @@
 import argparse
 
 import params
-from makers import ClTester
+from makers import CLTester
 from utils import load_yaml, dir_path
 
 
