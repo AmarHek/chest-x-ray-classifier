@@ -57,6 +57,8 @@ class CLTester:
         self.test_loader = DataLoader(self.test_set, batch_size=testParams.batch_size,
                                       num_workers=1, shuffle=False, drop_last=False)
         self.labels = self.test_set.train_labels
+        self.output_file = testParams.output_file
+        self.metrics_file = testParams.metrics_file
 
         # get model paths
         print("Getting model paths...")
@@ -90,7 +92,7 @@ class CLTester:
     def _outputs_exist(self, model_path: str):
         if os.path.exists(os.path.join(model_path, self.output_dir)):
             # check for outputs.csv and metrics.json
-            if os.path.exists(os.path.join(model_path, self.output_dir, TestParams.output_file)) and \
+            if os.path.exists(os.path.join(model_path, self.output_dir, self.output_file)) and \
                     os.path.exists(os.path.join(model_path, self.output_dir, "metrics.json")):
                 return True
             else:
@@ -224,7 +226,7 @@ class CLTester:
 
     def write_output(self, model_dir: str):
         # save outputs as csv with labels as columns
-        file = os.path.join(model_dir, self.output_dir, TestParams.output_file)
+        file = os.path.join(model_dir, self.output_dir, self.output_file)
         predictions_np = self.predictions.cpu().numpy()
         #modify to adjust for only training on validation data
         #predictions_df = pd.DataFrame(predictions_np, columns=self.labels)
@@ -246,7 +248,7 @@ class CLTester:
 
     def write_metrics(self, model_dir: str):
         # save metrics as csv
-        file = os.path.join(model_dir, self.output_dir, TestParams.metrics_file)
+        file = os.path.join(model_dir, self.output_dir, self.metrics_file)
 
         # Separate average and class-specific metrics
         average_metrics = {}
