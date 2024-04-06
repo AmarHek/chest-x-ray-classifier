@@ -28,6 +28,8 @@ class CheXpert(Dataset):
         self.image_size = params.image_size
         self._images_list = []
         self._labels_list = []
+        self._images_list_full = []
+        self._labels_list_full = []
         self.df = None
 
         self.value_counts_dict = {}
@@ -80,6 +82,10 @@ class CheXpert(Dataset):
         # get list of images and labels
         self._labels_list = self.df[self.train_labels].values.tolist()
         self._images_list = [os.path.join(params.image_root_path, path) for path in self.df['Path'].tolist()]
+        self._labels_list_full = self.df[self.train_labels].values.tolist()
+        self._images_list_full = [os.path.join(params.image_root_path, path) for path in self.df['Path'].tolist()]
+
+
 
         # check if all images exist
         if params.assert_images_exist:

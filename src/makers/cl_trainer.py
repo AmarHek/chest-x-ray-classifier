@@ -127,12 +127,13 @@ class CLTrainer:
 
     def set_dataloaders(self, batch_size=32, num_workers=2,current_epoch=1,n_epochs=200,cl_learning=True):
         print("Setting up CL dataloaders")
+        print("image",self.train_set.num_images)
         temp_img_set = set(self.train_set._images_list)
         #set training_sets
         cl_strategy = self.trainParams.cl_strategy
         #temporarily hard set
         
-        max_n = min(191027,len(pd.read_csv(self.dataTrainParams.csv_path)))
+        max_n = len(self.train_set._images_list_full)
         n_epochs = self.trainParams.n_epochs
         if cl_strategy == "linear" and cl_learning:
             
@@ -162,7 +163,18 @@ class CLTrainer:
                 diff = diff.sort_values(by=difficulty_measure,ascending=False)
         
             temp_list = [os.path.join(image_root_path, path) for path in diff['Path'].head(n).tolist()]
-            self.train_set._images_list = [i for i in self.train_set._images_list if i in temp_list]
+
+            #find indices for relevant images
+            my_dict = {value: index for index, value in enumerate(self.train_set._images_list_full)}
+            indices =[]
+            for key in temp_list:
+                try:
+                    indices.append(my_dict[key])
+                except KeyError as e:
+                    pass
+            #indices = [my_dict[key] for key in temp_list]
+            self.train_set._images_list = [self.train_set._images_list_full[i] for i in indices]
+            self.train_set._labels_list = [self.train_set._labels_list_full[i] for i in indices]
 
             self.train_set.num_images = len(self.train_set._images_list)
 
@@ -170,7 +182,7 @@ class CLTrainer:
         #n = len(self.train_set._images_list)
         print(f"currently {len(self.train_set._images_list)} images in batch")
         train_loader = DataLoader(self.train_set, batch_size=batch_size,
-                                  num_workers=num_workers, drop_last=True, shuffle=True)
+                                  num_workers=num_workers, drop_last=False, shuffle=True)
         valid_loader = DataLoader(self.valid_set, batch_size=batch_size,
                                   num_workers=num_workers, drop_last=False, shuffle=False)
         print("Trainloader has length", len(train_loader))
@@ -275,6 +287,7 @@ class CLTrainer:
             # extract data
             images = data["image"]
             labels = data["label"]
+
 
             # move to device
             images = images.to(self.device)
