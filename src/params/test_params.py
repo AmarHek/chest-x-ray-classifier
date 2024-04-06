@@ -24,3 +24,5 @@ class TestParams(BaseParams):
     batch_size: int = 32
     test_time_augmentation: bool = False  # whether to use test time augmentation
     num_augmentations: int = 5  # how many augmented images to use
+    metrics_file: str = "metrics.csv"
+    output_file: str = "outputs.csv"
