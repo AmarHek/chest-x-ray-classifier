@@ -53,7 +53,12 @@ def compare_performances(path_normal,
 
     tdf = pd.read_csv(path_ground_truth)
     for col in illness:
-        tdf[col].replace(-1, 1, inplace=True)
+        #lsr_one_cols
+        if col in ['Edema','Atelectasis']:
+            tdf[col].replace(-1, 1, inplace=True)
+        #lsr_zero_cols
+        elif col in ['Cardiomegaly','Consolidation','Pleural Effusion']:
+            tdf[col].replace(-1, 0, inplace=True)
     # Concatenate based on 'filename'
     result = pd.merge(df1, df2, on='filename', how='outer')
     columns_to_transform = result.columns.drop("filename").tolist()

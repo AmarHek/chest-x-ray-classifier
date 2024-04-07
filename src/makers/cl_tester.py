@@ -229,8 +229,8 @@ class CLTester:
         file = os.path.join(model_dir, self.output_dir, self.output_file)
         predictions_np = self.predictions.cpu().numpy()
         #modify to adjust for only training on validation data
-        #predictions_df = pd.DataFrame(predictions_np, columns=self.labels)
-        predictions_df = pd.DataFrame(predictions_np)
+        predictions_df = pd.DataFrame(predictions_np, columns=self.labels)
+        #predictions_df = pd.DataFrame(predictions_np)
         if self.write_filenames:
             filenames = pd.Series(self.filenames)
             predictions_df.insert(0, "filename", filenames)
